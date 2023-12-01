@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [[ "$1" == "" ]]; then
+  echo "Usage: new <day name>"
+  exit 1
+fi
+
+mkdir "$1"
+cp templates/prog.py "${1}/prog.py"
+
+
