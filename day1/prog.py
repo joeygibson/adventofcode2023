@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+
 import sys
 
 
@@ -8,7 +9,7 @@ def part1(lines: list[str]) -> int:
     sum = 0
     for line in lines:
         digits = [c for c in line if c.isdigit()]
-        print(f'{line} -> {digits}')
+
         num = int(f'{digits[0]}{digits[-1]}')
 
         sum += num
@@ -16,7 +17,7 @@ def part1(lines: list[str]) -> int:
     return sum
 
 
-def possibly_convert_digit(value: str) -> int:
+def possibly_convert_digit(value: str) -> str:
     if value.isdigit():
         return value
     else:
@@ -43,15 +44,14 @@ def part2(lines: list[str]) -> int:
 
         num = int(f'{first_digit}{last_digit}')
 
-        print(f'{line} -> {digits} -> {first_digit}, {last_digit} -> {num}')
-
         sum += num
 
     return sum
 
 
-with open(sys.argv[1]) as f:
-    lines = f.read().splitlines()
+if __name__ == '__main__':
+    with open(sys.argv[1]) as f:
+        lines = f.read().splitlines()
 
-# print(f'part1 -> {part1(lines)}')
-print(f'part1 -> {part2(lines)}')
+    print(f'part1 -> {part1(lines)}')
+    print(f'part2 -> {part2(lines)}')
