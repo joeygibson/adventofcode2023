@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import functools
 import re
 import sys
 
@@ -7,7 +8,7 @@ MAX_GREEN = 13
 MAX_BLUE = 14
 
 
-def part1(lines: list[str]) -> int:
+def build_games(lines: list[str]) -> dict[int, dict[str, int]]:
     games = {}
 
     for line in lines:
@@ -28,7 +29,11 @@ def part1(lines: list[str]) -> int:
 
             games[game_id] = game
 
-    print(games)
+    return games
+
+
+def part1(lines: list[str]) -> int:
+    games = build_games(lines)
 
     possible_games = [k for k, v in games.items() if
                       v['red'] <= MAX_RED and v['green'] <= MAX_GREEN and v['blue'] <= MAX_BLUE]
@@ -37,7 +42,9 @@ def part1(lines: list[str]) -> int:
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    games = build_games(lines)
+
+    return sum([functools.reduce(lambda x, y: x * y, game.values()) for game in games.values()])
 
 
 if __name__ == '__main__':
