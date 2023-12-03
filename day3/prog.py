@@ -30,19 +30,21 @@ def find_numbers(lines: list[str]) -> list[Tuple[int, int, int, int]]:
     return numbers
 
 
-def is_thing_near_another_thing(thing: Tuple[int, int, int, int],
-                                other_things: list[Tuple[str, int, int, int]]) -> bool:
-    for other_thing in other_things:
-        found = False
+def is_num_near_symbol(num: Tuple[int, int, int, int], symbols: list[Tuple[str, int, int, int]]) -> bool:
+    found = False
+    for sym in symbols:
+        cur_found = False
 
-        if thing[2] <= other_thing[2] <= thing[3]:
+        if num[2] <= sym[2] <= num[3]:
             found = True
-        if other_thing[2] == thing[2] - 1 or other_thing[3] == thing[3] + 1:
+            cur_found = True
+        if sym[2] == num[2] - 1 or sym[3] == num[3] + 1:
             found = True
+            cur_found = True
 
-        if other_thing[0] == '*' and found:
-            popular_symbols[other_thing].append(thing)
-            break
+        if sym[0] == '*' and cur_found:
+            popular_symbols[sym].append(num)
+            # break
 
     return found
 
@@ -56,15 +58,15 @@ def find_numbers_near_symbols(symbols: list[Tuple[str, int, int, int]],
         next_row_symbols = [s for s in symbols if s[1] == num[1] + 1]
         cur_row_symbols = [s for s in symbols if s[1] == num[1]]
 
-        if prev_row_symbols and is_thing_near_another_thing(num, prev_row_symbols):
+        if prev_row_symbols and is_num_near_symbol(num, prev_row_symbols):
             vals.append(num[0])
             continue
 
-        if next_row_symbols and is_thing_near_another_thing(num, next_row_symbols):
+        if next_row_symbols and is_num_near_symbol(num, next_row_symbols):
             vals.append(num[0])
             continue
 
-        if cur_row_symbols and is_thing_near_another_thing(num, cur_row_symbols):
+        if cur_row_symbols and is_num_near_symbol(num, cur_row_symbols):
             vals.append(num[0])
             continue
 
@@ -81,7 +83,6 @@ def part1(lines: list[str]) -> int:
 
 def part2(lines: list[str]) -> int:
     vals = list(filter(lambda x: len(x) == 2, popular_symbols.values()))
-    print(vals)
 
     for i in range(len(vals)):
         vals[i] = list(map(lambda x: x[0], vals[i]))
