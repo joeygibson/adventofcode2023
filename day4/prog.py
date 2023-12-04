@@ -20,9 +20,6 @@ def part1(lines: list[str]) -> int:
 
     results = []
     for card in winning_cards:
-        if card[1] == 1:
-            results.append(1)
-        else:
             results.append(2 ** (card[1] - 1))
 
     return sum(results)
