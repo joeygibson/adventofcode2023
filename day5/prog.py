@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-import unittest
-from dataclasses import dataclass
+import itertools
 import sys
+import unittest
 
 
 class ThingToThingMap:
@@ -80,9 +80,36 @@ def part1(lines: list[str]) -> int:
     return min(locations)
 
 
-
 def part2(lines: list[str]) -> int:
-    pass
+    seed_ranges: list[range] = []
+
+    seed_seeds = [int(chunk) for chunk in lines[0].split()[1:]]
+
+    for seed_seed in itertools.batched(seed_seeds, 2):
+        seed_ranges.append(range(seed_seed[0], seed_seed[0] + seed_seed[1]))
+
+    sections = split_out_sections(lines[2:])
+
+    maps = create_maps(sections)
+
+    locations: list[int] = []
+
+    for seed_range in seed_ranges:
+        for seed in seed_range:
+            soil = maps['seed-to-soil'].map_input(seed)
+            fertilizer = maps['soil-to-fertilizer'].map_input(soil)
+            water = maps['fertilizer-to-water'].map_input(fertilizer)
+            light = maps['water-to-light'].map_input(water)
+            temperature = maps['light-to-temperature'].map_input(light)
+            humidity = maps['temperature-to-humidity'].map_input(temperature)
+            location = maps['humidity-to-location'].map_input(humidity)
+
+            # print(f'seed {seed} -> soil {soil} -> fertilizer {fertilizer} -> water {water} -> light {light} -> '
+            #       f'temperature {temperature} -> humidity {humidity} -> location {location}')
+
+            locations.append(location)
+
+    return min(locations)
 
 
 class TestDay5(unittest.TestCase):
@@ -93,7 +120,10 @@ class TestDay5(unittest.TestCase):
         part1(lines)
 
     def test_part2(self):
-        pass
+        with open('input0.txt') as f:
+            lines = f.read().splitlines()
+
+        part2(lines)
 
 
 if __name__ == '__main__':
