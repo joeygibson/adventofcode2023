@@ -4,35 +4,38 @@ import sys
 import unittest
 
 
-def part1(lines: list[str]) -> int:
-    durations = [int(d) for d in lines[0].split(':')[1].split()]
-    records = [int(d) for d in lines[1].split(':')[1].split()]
-
-    print(f'durations: {durations}')
-    print(f'records: {records}')
-
+def process_races(durations: list[int], records: list[int]) -> list[int]:
     possibilities = []
 
     for dur, rec in zip(durations, records):
-        print(f'dur: {dur}, rec: {rec}')
         poss = 0
         for i in range(dur):
             dur_minus_i = dur - i
             dur_minus_i_times_i = dur_minus_i * i
             if dur_minus_i_times_i > rec:
-                # print(f'found: {i}')
                 poss += 1
 
         possibilities.append(poss)
 
-    print(f'possibilities: {possibilities}')
+    return possibilities
+
+
+def part1(lines: list[str]) -> int:
+    durations = [int(d) for d in lines[0].split(':')[1].split()]
+    records = [int(d) for d in lines[1].split(':')[1].split()]
+
+    possibilities = process_races(durations, records)
+
     return functools.reduce(lambda x, y: x * y, possibilities)
 
 
-
-
 def part2(lines: list[str]) -> int:
-    pass
+    duration = int(lines[0].split(':')[1].replace(' ', ''))
+    record = int(lines[1].split(':')[1].replace(' ', ''))
+
+    possibilities = process_races([duration], [record])
+
+    return functools.reduce(lambda x, y: x * y, possibilities)
 
 
 class TestDay6(unittest.TestCase):
@@ -40,13 +43,17 @@ class TestDay6(unittest.TestCase):
         with open('input0.txt') as f:
             lines = f.read().splitlines()
 
-        part1(lines)
+        res = part1(lines)
+
+        self.assertEqual(288, res)
 
     def test_part2(self):
         with open('input0.txt') as f:
             lines = f.read().splitlines()
 
-        part2(lines)
+        res = part2(lines)
+
+        self.assertEqual(71503, res)
 
 
 if __name__ == '__main__':
