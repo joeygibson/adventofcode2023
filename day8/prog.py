@@ -20,45 +20,18 @@ class Node:
         return f'Node({self.name}, {self.left}, {self.right})'
 
 
-# def find_node(starting_nodes: list[Node], directions) -> int:
-#     steps = 0
-#     cur_nodes: list[Node] = starting_nodes
-#     finishes: list[int] = [-1] * len(cur_nodes)
-#
-#     while True:
-#         # matches = all(node.name.endswith('Z') for node in cur_nodes)
-#         #
-#         # if matches:
-#         #     return steps
-#
-#         steps += 1
-#
-#         if all(f > 0 for f in finishes):
-#             print(f'finishes: {finishes}')
-#             return math.lcm(*finishes)
-#
-#         direction = next(directions)
-#
-#         for i, node in enumerate(cur_nodes):
-#             if node.name.endswith('Z'):
-#                 finishes[i] = steps
-#                 continue
-#
-#             if direction == 'L':
-#                 cur_nodes[i] = node.left
-#             elif direction == 'R':
-#                 cur_nodes[i] = node.right
-#             else:
-#                 raise Exception(f'Invalid direction {direction}')
-
-def find_node(node: Node, directions) -> int:
+def find_node(node: Node, directions, is_part_2: bool = False) -> int:
     steps = 0
 
     while True:
         direction = next(directions)
 
-        if node.name.endswith('Z'):
-            return steps
+        if is_part_2:
+            if node.name.endswith('Z'):
+                return steps
+        else:
+            if node.name == 'ZZZ':
+                return steps
 
         steps += 1
 
@@ -70,7 +43,7 @@ def find_node(node: Node, directions) -> int:
             raise Exception(f'Invalid direction {direction}')
 
 
-def build_nodes(lines: list[str]) -> Tuple[dict[str, Node], list[int]]:
+def build_nodes(lines: list[str]) -> Tuple[dict[str, Node], list[str]]:
     nodes = {}
 
     dirs = list(lines[0])
@@ -95,7 +68,7 @@ def build_nodes(lines: list[str]) -> Tuple[dict[str, Node], list[int]]:
 
 def part1(lines: list[str]) -> int:
     nodes, dirs = build_nodes(lines)
-    return find_node(nodes['AAA'], 'ZZZ', dirs)
+    return find_node(nodes['AAA'], itertools.cycle(list(lines[0])))
 
 
 def part2(lines: list[str]) -> int:
@@ -103,7 +76,7 @@ def part2(lines: list[str]) -> int:
 
     ending_in_a = [node for node in nodes.values() if node.name.endswith('A')]
 
-    finishes = [find_node(node, itertools.cycle(list(lines[0]))) for node in ending_in_a]
+    finishes = [find_node(node, itertools.cycle(list(lines[0])), True) for node in ending_in_a]
 
     return math.lcm(*finishes)
 
@@ -139,12 +112,12 @@ class TestProg(unittest.TestCase):
 
         res = part2(self.lines)
 
-        self.assertEqual(6, res)
+        self.assertEqual(8906539031197, res)
 
 
 if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         lines = f.read().splitlines()
 
-    # print(f'part1 -> {part1(lines)}')
+    print(f'part1 -> {part1(lines)}')
     print(f'part2 -> {part2(lines)}')
