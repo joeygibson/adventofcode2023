@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import itertools
+import math
 import re
 import sys
 import unittest
+from typing import Tuple
 
 
 class Node:
@@ -18,50 +20,60 @@ class Node:
         return f'Node({self.name}, {self.left}, {self.right})'
 
 
-# def find_node(node: Node, name: str, directions) -> int:
-#     if node.name == name:
-#         return 0
+# def find_node(starting_nodes: list[Node], directions) -> int:
+#     steps = 0
+#     cur_nodes: list[Node] = starting_nodes
+#     finishes: list[int] = [-1] * len(cur_nodes)
 #
-#     direction = next(directions)
-#     if direction == 'L':
-#         return find_node(node.left, name, directions) + 1
-#     elif direction == 'R':
-#         return find_node(node.right, name, directions) + 1
-#     else:
-#         raise Exception(f'Invalid direction {direction}')
+#     while True:
+#         # matches = all(node.name.endswith('Z') for node in cur_nodes)
+#         #
+#         # if matches:
+#         #     return steps
+#
+#         steps += 1
+#
+#         if all(f > 0 for f in finishes):
+#             print(f'finishes: {finishes}')
+#             return math.lcm(*finishes)
+#
+#         direction = next(directions)
+#
+#         for i, node in enumerate(cur_nodes):
+#             if node.name.endswith('Z'):
+#                 finishes[i] = steps
+#                 continue
+#
+#             if direction == 'L':
+#                 cur_nodes[i] = node.left
+#             elif direction == 'R':
+#                 cur_nodes[i] = node.right
+#             else:
+#                 raise Exception(f'Invalid direction {direction}')
 
-def find_node(node: Node, name: str, directions) -> int:
+def find_node(node: Node, directions) -> int:
     steps = 0
-    prev_node = None
 
     while True:
-        if node.name == name:
+        direction = next(directions)
+
+        if node.name.endswith('Z'):
             return steps
 
         steps += 1
 
-        direction = next(directions)
-
         if direction == 'L':
-            if node.left:
-                prev_node = node
-                node = node.left
-            else:
-                node = prev_node
+            node = node.left
         elif direction == 'R':
-            if node.right:
-                prev_node = node
-                node = node.right
-            else:
-                node = prev_node
+            node = node.right
         else:
             raise Exception(f'Invalid direction {direction}')
 
 
-def part1(lines: list[str]) -> int:
+def build_nodes(lines: list[str]) -> Tuple[dict[str, Node], list[int]]:
     nodes = {}
 
-    dirs = itertools.cycle(list(lines[0]))
+    dirs = list(lines[0])
 
     for line in lines[2:]:
         node_name, left_name, right_name = re.findall(r'\w+', line)
@@ -78,11 +90,22 @@ def part1(lines: list[str]) -> int:
         node.left = left_node
         node.right = right_node
 
+    return nodes, dirs
+
+
+def part1(lines: list[str]) -> int:
+    nodes, dirs = build_nodes(lines)
     return find_node(nodes['AAA'], 'ZZZ', dirs)
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    nodes, dirs = build_nodes(lines)
+
+    ending_in_a = [node for node in nodes.values() if node.name.endswith('A')]
+
+    finishes = [find_node(node, itertools.cycle(list(lines[0]))) for node in ending_in_a]
+
+    return math.lcm(*finishes)
 
 
 class TestProg(unittest.TestCase):
@@ -102,16 +125,26 @@ class TestProg(unittest.TestCase):
 
         self.assertEqual(6, res)
 
-    def test_part2(self):
-        with open('input0.txt') as f:
+    def test_part2_one(self):
+        with open('input3.txt') as f:
             self.lines = f.read().splitlines()
 
         res = part2(self.lines)
+
+        self.assertEqual(6, res)
+
+    def test_part2(self):
+        with open('input1.txt') as f:
+            self.lines = f.read().splitlines()
+
+        res = part2(self.lines)
+
+        self.assertEqual(6, res)
 
 
 if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         lines = f.read().splitlines()
 
-    print(f'part1 -> {part1(lines)}')
+    # print(f'part1 -> {part1(lines)}')
     print(f'part2 -> {part2(lines)}')
