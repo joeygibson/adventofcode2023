@@ -16,6 +16,7 @@ FACE_CARDS: dict[str, int] = {
 class Hand:
     cards: list[str]
     bid: int
+    has_wild_cards: bool = False
 
     def __post_init__(self):
         self.card_counts = {}
@@ -25,6 +26,53 @@ class Hand:
                 self.card_counts[card] += 1
             else:
                 self.card_counts[card] = 1
+
+        if self.has_wild_cards:
+            self.orig_cards = self.cards.copy()
+
+            jokers = self.card_counts.get('J', 0)
+
+            if jokers:
+                strength = self.get_strength()
+
+                del (self.card_counts['J'])
+
+                high_key = None
+
+                if strength == 7:
+                    high_key = 'K'
+                elif strength == 6:
+                    if 4 in self.card_counts.values():
+                        high_key = [k for k, v in self.card_counts.items() if v == 4][0]
+                    else:
+                        high_key = next(iter(self.card_counts.keys()))
+                elif strength == 5:
+                    if 3 in self.card_counts.values():
+                        high_key = [k for k, v in self.card_counts.items() if v == 3][0]
+                    else:
+                        high_key = next(iter(self.card_counts.keys()))
+                elif strength == 4:
+                    if 3 in self.card_counts.values():
+                        high_key = [k for k, v in self.card_counts.items() if v == 3][0]
+                    else:
+                        high_key = next(iter(self.card_counts.keys()))
+                elif strength == 3:
+                    high_key = [k for k, v in self.card_counts.items() if v == 2][0]
+                elif strength == 2:
+                    if 2 in self.card_counts.values():
+                        high_key = [k for k, v in self.card_counts.items() if v == 2][0]
+                    else:
+                        high_key = next(iter(self.card_counts.keys()))
+                elif strength == 1:
+                    high_key = max(self.card_counts.keys())
+
+                if not high_key:
+                    raise Exception(f'Unknown strength: {self.cards} -> {strength}')
+
+                if high_key in self.card_counts:
+                    self.card_counts[high_key] += jokers
+                else:
+                    self.card_counts[high_key] = jokers
 
     def __str__(self):
         return f'Hand({self.cards})'
@@ -81,8 +129,6 @@ class Hand:
             else:
                 other_card = int(other_card)
 
-            print(f'comparing {card} to {other_card}')
-
             if card < other_card:
                 return -1
             elif card > other_card:
@@ -96,7 +142,6 @@ class Hand:
         elif self.get_strength() > other.get_strength():
             return False
         else:
-            print(f'comparing {self} to {other}')
             return self.compare_cards(other) < 0
 
 
@@ -117,13 +162,28 @@ def part1(lines: list[str]) -> int:
         value = hand.bid * pos
         values.append(value)
 
-        print(f'{pos}: {hand} -> {value}')
-
     return sum(values)
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    FACE_CARDS['J'] = 1
+    hands = []
+
+    for line in lines:
+        raw_cards, bid = line.split()
+        cards = list(raw_cards)
+
+        hand = Hand(cards, int(bid), True)
+
+        hands.append(hand)
+
+    values: list[int] = []
+
+    for pos, hand in enumerate(sorted(hands), start=1):
+        value = hand.bid * pos
+        values.append(value)
+
+    return sum(values)
 
 
 class TestDay7(unittest.TestCase):
@@ -136,7 +196,12 @@ class TestDay7(unittest.TestCase):
         self.assertEqual(6440, res)
 
     def test_part2(self):
-        pass
+        with open('input0.txt') as f:
+            lines = f.read().splitlines()
+
+        res = part2(lines)
+
+        self.assertEqual(5905, res)
 
 
 if __name__ == '__main__':
