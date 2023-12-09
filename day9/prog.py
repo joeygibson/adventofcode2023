@@ -4,22 +4,26 @@ import sys
 import unittest
 
 
-def compute_differeces(values: list[int]) -> list[int]:
+def compute_differences(values: list[int]) -> list[int]:
     pairs = itertools.pairwise(values)
     return [b - a for a, b in pairs]
 
 
-def part1(lines: list[str]) -> int:
+def solve(lines: list[str], in_reverse: bool = False) -> int:
     results = []
 
     for line in lines:
         sequences: list[list[int]] = []
 
         values = [int(x) for x in line.split()]
+
+        if in_reverse:
+            values = list(reversed(values))
+
         sequences.append(values)
 
         while True:
-            differences = compute_differeces(values)
+            differences = compute_differences(values)
             sequences.append(differences)
 
             if all(d == 0 for d in differences):
@@ -40,8 +44,12 @@ def part1(lines: list[str]) -> int:
     return sum(results)
 
 
+def part1(lines: list[str]) -> int:
+    return solve(lines)
+
+
 def part2(lines: list[str]) -> int:
-    pass
+    return solve(lines, True)
 
 
 class TestProg(unittest.TestCase):
@@ -56,6 +64,7 @@ class TestProg(unittest.TestCase):
 
     def test_part2(self):
         res = part2(self.lines)
+        self.assertEqual(2, res)
 
 
 if __name__ == '__main__':
