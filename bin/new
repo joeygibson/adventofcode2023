@@ -5,7 +5,9 @@ if [[ "$1" == "" ]]; then
   exit 1
 fi
 
-mkdir "$1"
-cp templates/prog.py "${1}/prog.py"
+PADDED_NAME=$(printf "%02d" "$1")
+
+mkdir ${PADDED_NAME}
+cp templates/prog.py "${PADDED_NAME}/prog.py"
 
 
