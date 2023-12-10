@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
 if [[ "$1" == "" ]]; then
-  echo "Usage: new <day name>"
+  echo "Usage: new <day number>"
   exit 1
 fi
 
 PADDED_NAME=$(printf "%02d" "$1")
+DIR_NAME="day${PADDED_NAME}"
 
-mkdir ${PADDED_NAME}
-cp templates/prog.py "${PADDED_NAME}/prog.py"
+mkdir "${DIR_NAME}"
+cp templates/prog.py "${DIR_NAME}/prog.py"
 
 
