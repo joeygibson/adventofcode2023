@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+
 import itertools
 import sys
 import unittest
 
 
-def build_univere(lines: list[str]) -> list[list[str]]:
+def build_universe(lines: list[str]) -> list[list[str]]:
     universe = []
 
     for line in lines:
@@ -33,32 +34,6 @@ def find_expandable_columns(universe: list[list[str]]) -> list[int]:
     return expandable_columns
 
 
-def expand_height(universe: list[list[str]], ex_rows: list[int]) -> list[list[str]]:
-    new_universe = universe.copy()
-
-    for i in reversed(ex_rows):
-        new_universe.insert(i, ['.'] * len(universe[0]))
-
-    return new_universe
-
-
-def expand_width(universe: list[list[str]], ex_cols: list[int]) -> list[list[str]]:
-    new_universe = universe.copy()
-
-    for i in reversed(ex_cols):
-        for row in new_universe:
-            row.insert(i, '.')
-
-    return new_universe
-
-
-def expand_universe(universe: list[list[str]], ex_rows: list[int], ex_cols: list[int]) -> list[list[str]]:
-    new_universe = expand_height(universe, ex_rows)
-    new_universe = expand_width(new_universe, ex_cols)
-
-    return new_universe
-
-
 def find_galaxies(universe: list[list[str]]) -> list[tuple[int, int]]:
     galaxies = []
 
@@ -80,37 +55,59 @@ def compute_distances(pairs: list[tuple[int, int]]) -> list[int]:
     return distances
 
 
-def part1(lines: list[str]) -> int:
-    universe = build_univere(lines)
-    for row in universe:
-        print(row)
+def find_galaxies_as_dict(universe: list[list[str]]) -> dict[tuple[int, int], tuple[int, int]]:
+    galaxies = {}
+
+    for i, row in enumerate(universe):
+        for j, col in enumerate(row):
+            if col == '#':
+                galaxies[(i, j)] = (i, j)
+
+    return galaxies
+
+
+def expand_universe(galaxies: dict[tuple[int, int], tuple[int, int]],
+                    ex_rows: list[int],
+                    ex_cols: list[int],
+                    is_part_2: bool = False) -> dict[tuple[int, int], tuple[int, int]]:
+    scale = 999_999 if is_part_2 else 1
+
+    for i in ex_rows:
+        higher_galaxies = {k: v for k, v in galaxies.items() if k[0] > i}
+        for k, v in higher_galaxies.items():
+            galaxies[k] = (v[0] + scale, v[1])
+
+    for i in ex_cols:
+        higher_galaxies = {k: v for k, v in galaxies.items() if k[1] > i}
+        for k, v in higher_galaxies.items():
+            galaxies[k] = (v[0], v[1] + scale)
+
+    return galaxies
+
+
+def do_it(lines: list[str], is_part_2: bool = False) -> int:
+    universe = build_universe(lines)
 
     ex_rows = find_expandable_rows(universe)
     ex_cols = find_expandable_columns(universe)
 
-    print(f'expandable rows: {ex_rows}, expandable columns: {ex_cols}')
+    galaxies = find_galaxies_as_dict(universe)
 
-    new_universe = expand_universe(universe, ex_rows, ex_cols)
-    for row in new_universe:
-        print(row)
+    galaxies = expand_universe(galaxies, ex_rows, ex_cols, is_part_2)
 
-    galaxies = find_galaxies(new_universe)
-    # numbered_galaxies = list(zip(range(1, len(galaxies) + 1), galaxies))
-
-    pairs = list(itertools.combinations(galaxies, 2))
-
-    print(f'galaxies: {galaxies}')
-    # print(f'numbered galaxies: {numbered_galaxies}')
-    print(f'pairs: {pairs}, len: {len(pairs)}')
+    pairs = list(itertools.combinations(galaxies.values(), 2))
 
     distances = compute_distances(pairs)
-    print(f'distances: {distances}')
 
     return sum(distances)
 
 
+def part1(lines: list[str]) -> int:
+    return do_it(lines)
+
+
 def part2(lines: list[str]) -> int:
-    pass
+    return do_it(lines, True)
 
 
 class TestProg(unittest.TestCase):
@@ -125,6 +122,10 @@ class TestProg(unittest.TestCase):
 
     def test_part2(self):
         res = part2(self.lines)
+
+        self.assertEqual(82000210, res)
+        # self.assertEqual(8410, res)
+        # self.assertEqual(1030, res)
 
 
 if __name__ == '__main__':
