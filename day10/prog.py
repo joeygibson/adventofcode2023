@@ -97,7 +97,11 @@ def part1(lines: list[str]) -> int:
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    mapping = build_map(lines)
+    non_pipes = [k for k, v in mapping.items() if v[0] == '.']
+
+    for cell in non_pipes:
+        print(cell)
 
 
 class TestProg(unittest.TestCase):
@@ -111,7 +115,11 @@ class TestProg(unittest.TestCase):
         self.assertEqual(4, res)
 
     def test_part2(self):
+        with open('input3.txt') as f:
+            self.lines = f.read().splitlines()
+
         res = part2(self.lines)
+        self.assertEqual(4, res)
 
 
 if __name__ == '__main__':
