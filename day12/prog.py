@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import functools
+import itertools
 import sys
 import unittest
 
@@ -10,7 +11,7 @@ def parse(lines: list[str]) -> list[tuple[str, list[int]]]:
     for line in lines:
         chunks = line.split()
         broken_spring_counts = [int(x) for x in chunks[1].split(',')]
-        data.append((chunks[0], tuple(broken_spring_counts)))
+        data.append((chunks[0], broken_spring_counts))
 
     return data
 
@@ -84,8 +85,6 @@ def calc(record, groups):
     else:
         raise Exception(f'Unknown character: {next_character}')
 
-    # print(record, groups, ' -> ', out)
-
     return out
 
 
@@ -95,13 +94,23 @@ def part1(lines: list[str]) -> int:
     output = 0
 
     for record in data:
-        output += calc(record[0], record[1])
+        output += calc(record[0], tuple(record[1]))
 
     return output
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    data = parse(lines)
+
+    output = 0
+
+    for record in data:
+        unfolded_record = '?'.join(itertools.repeat(record[0], 5))
+        unfolded_groups = record[1] * 5
+
+        output += calc(unfolded_record, tuple(unfolded_groups))
+
+    return output
 
 
 class TestProg(unittest.TestCase):
@@ -116,6 +125,8 @@ class TestProg(unittest.TestCase):
 
     def test_part2(self):
         res = part2(self.lines)
+
+        self.assertEqual(525152, res)
 
 
 if __name__ == '__main__':
