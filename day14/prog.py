@@ -4,7 +4,10 @@ import sys
 import unittest
 
 
-def tilt(the_map: list[list[str]]) -> list[list[str]]:
+def tilt_north_or_south(the_map: list[list[str]], is_south: bool = False) -> list[list[str]]:
+    if is_south:
+        the_map.reverse()
+
     for row_num, row in enumerate(the_map):
         if row_num == 0:
             # skip the first row
@@ -28,13 +31,58 @@ def tilt(the_map: list[list[str]]) -> list[list[str]]:
                 the_map[row_to_move_to][rock_num] = 'O'
                 the_map[row_num][rock_num] = '.'
 
+    if is_south:
+        the_map.reverse()
+
+    return the_map
+
+
+def tilt_west_or_east(the_map: list[list[str]], is_east: bool = False) -> list[list[str]]:
+    for row_num, row in enumerate(the_map):
+        if is_east:
+            row.reverse()
+
+        for col_num, col in enumerate(row):
+            if col_num == 0:
+                # skip the first column
+                continue
+
+            if col in '#.':
+                continue
+
+            col_to_move_to = None
+
+            col_range = range(col_num)
+            for previous_col in reversed(list(col_range)):
+                if the_map[row_num][previous_col] in 'O#':
+                    # we hit a rock
+                    break
+
+                col_to_move_to = previous_col
+
+            if col_to_move_to is not None:
+                the_map[row_num][col_to_move_to] = 'O'
+                the_map[row_num][col_num] = '.'
+
+        if is_east:
+            row.reverse()
+
+    return the_map
+
+
+def tilt(the_map: list[list[str]]) -> list[list[str]]:
+    the_map = tilt_north_or_south(the_map)
+    the_map = tilt_west_or_east(the_map)
+    the_map = tilt_north_or_south(the_map, is_south=True)
+    the_map = tilt_west_or_east(the_map, is_east=True)
+
     return the_map
 
 
 def part1(lines: list[str]) -> int:
     the_map = [list(line) for line in lines]
 
-    tilted_map = tilt(the_map.copy())
+    tilted_map = tilt_north_or_south(the_map.copy())
 
     total = 0
 
@@ -46,7 +94,22 @@ def part1(lines: list[str]) -> int:
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    the_map = [list(line) for line in lines]
+
+    tilted_map = None
+
+    for i in range(1_000_000_000):
+        if i % 100_000 == 0:
+            print(f'{i:,}')
+        tilted_map = tilt(the_map.copy())
+
+    total = 0
+
+    for row_num, row in enumerate(tilted_map):
+        rock_count = len([1 for rock in row if rock == 'O'])
+        total += rock_count * (len(the_map) - row_num)
+
+    return total
 
 
 class TestProg(unittest.TestCase):
@@ -55,11 +118,12 @@ class TestProg(unittest.TestCase):
             self.lines = f.read().splitlines()
 
     def test_part1(self):
-        res = part1(self.lines)
+        res = part2(self.lines)
         self.assertEqual(136, res)
 
     def test_part2(self):
         res = part2(self.lines)
+        self.assertEqual(64, res)
 
 
 if __name__ == '__main__':
