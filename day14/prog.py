@@ -36,9 +36,6 @@ def part1(lines: list[str]) -> int:
 
     tilted_map = tilt(the_map.copy())
 
-    for row in tilted_map:
-        print(''.join(row))
-
     total = 0
 
     for row_num, row in enumerate(tilted_map):
