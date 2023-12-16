@@ -71,30 +71,11 @@ def tilt_west_or_east(the_map: list[list[str]], is_east: bool = False) -> list[l
     return the_map
 
 
-#
-# def rotate(the_map: list[list[str]]) -> list[list[str]]:
-#     rotated_map = []
-#
-#     for col_num in range(len(the_map[0])):
-#         col = [row[col_num] for row in the_map]
-#         rotated_map.append(col)
-#
-#     return rotated_map
-#
-# def rotate1(curr_map):
-#     # Reverse all lines and return the columns to simulate a single rotation
-#     return [list(line) for line in zip(*map(reversed, curr_map))]
-
-
 def tilt(the_map: list[list[str]]) -> list[list[str]]:
     the_map = tilt_north_or_south(the_map)
     the_map = tilt_west_or_east(the_map)
     the_map = tilt_north_or_south(the_map, is_south=True)
     the_map = tilt_west_or_east(the_map, is_east=True)
-
-    # for _ in range(4):
-    #     the_map = tilt_north_or_south(the_map)
-    #     the_map = rotate1(the_map)
 
     return the_map
 
@@ -113,24 +94,13 @@ def part1(lines: list[str]) -> int:
     return total
 
 
-#
-#
-# def points(mat, rowSize):
-#     total = 0
-#     for i in range(rowSize):
-#         p = rowSize - i
-#         for j in range(rowSize):
-#             c = mat[i * rowSize + j]
-#             if c == 'O':
-#                 total = total + p
-#     return total
-#
-
 def part2(lines: list[str]) -> int:
     the_map = [list(line) for line in lines]
 
     seen = [the_map]
     cycles = 1_000_000_000
+    loop_index = 0
+    loop_length = 0
 
     for i in range(1_000_000_000):
         if i % 100_000 == 0:
@@ -141,7 +111,6 @@ def part2(lines: list[str]) -> int:
         if the_map in seen:
             loop_index = seen.index(the_map)
             loop_length = i + 1 - loop_index
-            print(f"After {i} cycles, we found a loop starting from cycle {loop_index} for {loop_length} cycles")
             break
 
         seen.append(the_map)
