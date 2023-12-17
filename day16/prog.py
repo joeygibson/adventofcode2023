@@ -45,17 +45,15 @@ def build_map(lines: list[str]) -> dict[tuple[int, int], Spot]:
     return cave
 
 
-def part1(lines: list[str]) -> int:
+def solve(lines: list[str], start_at: tuple[int, int] = (0, 0), direction: Direction = Direction.RIGHT) -> int:
     cave = build_map(lines)
-    beam = Beam((0, 0), Direction.RIGHT)
+    beam = Beam(start_at, direction)
     beams = collections.deque([beam])
     split_spots = []
 
     while True:
         if not beams:
             break
-
-        print('energized spots ->', sum([1 for spot in cave.values() if spot.is_energized]))
 
         beam = beams.popleft()
 
@@ -120,8 +118,37 @@ def part1(lines: list[str]) -> int:
     return sum([1 for spot in cave.values() if spot.is_energized])
 
 
+def part1(lines: list[str]) -> int:
+    return solve(lines)
+
+
 def part2(lines: list[str]) -> int:
-    pass
+    results = []
+
+    for y, line in enumerate(lines):
+        for x, c in enumerate(line):
+            if x == 0 and y == 0:
+                results.append(solve(lines, (x, y), Direction.RIGHT))
+                results.append(solve(lines, (x, y), Direction.DOWN))
+            elif x == 0 and y == len(lines) - 1:
+                results.append(solve(lines, (x, y), Direction.RIGHT))
+                results.append(solve(lines, (x, y), Direction.UP))
+            elif x == len(line) - 1 and y == 0:
+                results.append(solve(lines, (x, y), Direction.LEFT))
+                results.append(solve(lines, (x, y), Direction.DOWN))
+            elif x == len(line) - 1 and y == len(lines) - 1:
+                results.append(solve(lines, (x, y), Direction.LEFT))
+                results.append(solve(lines, (x, y), Direction.UP))
+            elif x == 0:
+                results.append(solve(lines, (x, y), Direction.RIGHT))
+            elif x == len(line) - 1:
+                results.append(solve(lines, (x, y), Direction.LEFT))
+            elif y == 0:
+                results.append(solve(lines, (x, y), Direction.DOWN))
+            elif y == len(lines) - 1:
+                results.append(solve(lines, (x, y), Direction.UP))
+
+    return max(results)
 
 
 class TestProg(unittest.TestCase):
@@ -135,6 +162,7 @@ class TestProg(unittest.TestCase):
 
     def test_part2(self):
         res = part2(self.lines)
+        self.assertEqual(51, res)
 
 
 if __name__ == '__main__':
