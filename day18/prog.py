@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-
+import re
 import sys
 import unittest
 
 
-def parse(lines: list[list[str]]) -> list[tuple[str, int, str]]:
+def parse(lines: list[str]) -> list[tuple[str, int, str]]:
     plan = []
 
     for line in lines:
@@ -52,7 +52,23 @@ def shoelace_area(trench):
     return area
 
 
-def part1(lines: list[list[str]]) -> int:
+def convert(plan: list[tuple[str, int, str]]) -> list[tuple[str, int, str]]:
+    new_plan = []
+
+    for (_, _, color) in plan:
+        match = re.match(r'^\(#([\w\d]{5})(\d)\)$', color)
+        hex_steps = match.group(1)
+        ord_dir = match.group(2)
+
+        steps = int(hex_steps, 16)
+        dir = 'RDLU'[int(ord_dir)]
+
+        new_plan.append((dir, steps, color))
+
+    return new_plan
+
+
+def part1(lines: list[str]) -> int:
     plan = parse(lines)
 
     trench = dig(plan)
@@ -63,7 +79,14 @@ def part1(lines: list[list[str]]) -> int:
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    plan = parse(lines)
+    plan = convert(plan)
+
+    trench = dig(plan)
+
+    area = shoelace_area(trench)
+
+    return len(trench) // 2 + area + 1
 
 
 class TestProg(unittest.TestCase):
