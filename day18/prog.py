@@ -38,16 +38,6 @@ def part1(lines: list[list[str]]) -> int:
 
     running_val = 0
 
-    # for i, (x1, y1) in enumerate(trench):
-    #     if i + 1 == len(trench):
-    #         x2, y2 = trench[0]
-    #     else:
-    #         x2, y2 = trench[i + 1]
-    #
-    #     running_val += (x1 * y2) - (x2 * y1)
-    #
-    # return int(abs(running_val / 2))
-
     # compute shoelace area of polygon
     S1 = 0
     S2 = 0
@@ -62,8 +52,7 @@ def part1(lines: list[list[str]]) -> int:
 
     area = int(abs(S1 - S2) / 2)
 
-    return len(trench)//2 + area + 1
-
+    return len(trench) // 2 + area + 1
 
 
 def part2(lines: list[str]) -> int:
