@@ -14,11 +14,9 @@ def parse(lines: list[list[str]]) -> list[tuple[str, int, str]]:
     return plan
 
 
-def part1(lines: list[list[str]]) -> int:
+def dig(plan: list[tuple[str, int, str]]) -> list[tuple[int, int]]:
     pos = (0, 0)
     trench = [pos]
-
-    plan = parse(lines)
 
     for (dir, units, _) in plan:
         for t in range(units):
@@ -36,9 +34,10 @@ def part1(lines: list[list[str]]) -> int:
 
             trench.append(pos)
 
-    running_val = 0
+    return trench
 
-    # compute shoelace area of polygon
+
+def shoelace_area(trench):
     S1 = 0
     S2 = 0
     for i, (x1, y1) in enumerate(trench):
@@ -49,8 +48,16 @@ def part1(lines: list[list[str]]) -> int:
 
         S1 += x1 * y2
         S2 += x2 * y1
-
     area = int(abs(S1 - S2) / 2)
+    return area
+
+
+def part1(lines: list[list[str]]) -> int:
+    plan = parse(lines)
+
+    trench = dig(plan)
+
+    area = shoelace_area(trench)
 
     return len(trench) // 2 + area + 1
 
@@ -70,6 +77,7 @@ class TestProg(unittest.TestCase):
 
     def test_part2(self):
         res = part2(self.lines)
+        self.assertEqual(952408144115, res)
 
 
 if __name__ == '__main__':
