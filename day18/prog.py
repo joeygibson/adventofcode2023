@@ -38,6 +38,9 @@ def dig(plan: list[tuple[str, int, str]]) -> list[tuple[int, int]]:
 
 
 def shoelace_area(trench):
+    """
+    https://en.wikipedia.org/wiki/Shoelace_formula
+    """
     S1 = 0
     S2 = 0
     for i, (x1, y1) in enumerate(trench):
@@ -75,6 +78,7 @@ def part1(lines: list[str]) -> int:
 
     area = shoelace_area(trench)
 
+    # https://en.wikipedia.org/wiki/Pick%27s_theorem
     return len(trench) // 2 + area + 1
 
 
@@ -86,6 +90,7 @@ def part2(lines: list[str]) -> int:
 
     area = shoelace_area(trench)
 
+    # https://en.wikipedia.org/wiki/Pick%27s_theorem
     return len(trench) // 2 + area + 1
 
 
