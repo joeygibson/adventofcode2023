@@ -3,6 +3,7 @@ import re
 import sys
 import unittest
 from dataclasses import dataclass
+from math import prod
 from typing import Any
 
 
@@ -73,7 +74,7 @@ def parse_workflows(rules: list[str]) -> dict[str | Any, list[Step]]:
     return workflows
 
 
-def part1(lines: list[str]) -> int:
+def part1(lines: str) -> int:
     accepted: list[dict[str, int]] = []
     rejected: list[dict[str, int]] = []
 
@@ -133,8 +134,63 @@ def part1(lines: list[str]) -> int:
     return sum([sum(part.values()) for part in accepted])
 
 
-def part2(lines: list[str]) -> int:
-    pass
+@dataclass
+class Span:
+    min: int
+    max: int
+
+    def __len__(self):
+        return self.max - self.min + 1
+
+    def split(self, n: int) -> tuple['Span', 'Span']:
+        if n < self.min or n >= self.max:
+            raise ValueError(f'{n} is not in range {self}')
+
+        return Span(self.min, n - 1), Span(n, self.max)
+
+
+def combos(workflows: dict[str | Any, list[Step]], dest: str, spans: tuple[Span]) -> int:
+    if dest == 'A':
+        return prod([len(span) for span in spans])
+    elif dest == 'R':
+        return 0
+
+    flow = workflows[dest]
+    span_index = {'x': 0, 'm': 1, 'a': 2, 's': 3}
+
+    for step in flow[:-1]:
+        span = spans[span_index[step.var_name]]
+
+        if (step.op == '<' and span.min >= step.value) or (step.op == '>' and span.max <= step.value):
+            continue  # rule does not apply in this case
+        elif (step.op == '<' and span.max < step.value) or (step.op == '>' and span.min > step.value):
+            return combos(step.dest, spans)
+        elif step.op == '<':
+            splits = span.split(step.value)
+            lower_span = [*spans]
+            upper_span = [*spans]
+            lower_span[span_index[step.var_name]] = splits[0]
+            upper_span[span_index[step.var_name]] = splits[1]
+
+            return combos(workflows, step.dest, tuple(lower_span)) + combos(workflows, dest, tuple(upper_span))
+        elif step.op == '>':
+            splits = span.split(step.value + 1)
+            lower_span = [*spans]
+            upper_span = [*spans]
+            lower_span[span_index[step.var_name]] = splits[0]
+            upper_span[span_index[step.var_name]] = splits[1]
+
+            return combos(workflows, dest, tuple(lower_span)) + combos(workflows, step.dest, tuple(upper_span))
+
+    return combos(workflows, flow[-1].dest, tuple(spans))
+
+
+def part2(data: str) -> int:
+    rules, _ = parse_input(data)
+
+    workflows = parse_workflows(rules)
+
+    return combos(workflows, 'in', (Span(1, 4000), Span(1, 4000), Span(1, 4000), Span(1, 4000)))
 
 
 class TestProg(unittest.TestCase):
@@ -148,11 +204,12 @@ class TestProg(unittest.TestCase):
 
     def test_part2(self):
         res = part2(self.data)
+        self.assertEqual(167409079868000, res)
 
 
 if __name__ == '__main__':
     with open(sys.argv[1]) as f:
-        lines = f.read()
+        data = f.read()
 
-    print(f'part1 -> {part1(lines)}')
-    print(f'part2 -> {part2(lines)}')
+    print(f'part1 -> {part1(data)}')
+    print(f'part2 -> {part2(data)}')
