@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import collections
 import enum
+import math
 import sys
 import unittest
 from dataclasses import dataclass, field
@@ -41,6 +42,9 @@ class Conjunction(Component):
 
     def __hash__(self):
         return hash(self.name)
+
+    def __repr__(self):
+        return f'{self.name} -> {self.previous_pulses}'
 
 
 class Pulse(enum.IntEnum):
@@ -87,7 +91,7 @@ def parse(lines: list[str]) -> dict[str, Component]:
     return components
 
 
-def press_the_button(circuit: dict[str, Component]) -> dict[Pulse, int]:
+def press_the_button(circuit: dict[str, Component], hits: dict[str, int] = None, iteration: int = 1) -> dict[Pulse, int]:
     pulse_counts: dict[Pulse, int] = collections.defaultdict(int)
     pulse_counts[Pulse.LOW] = 1
 
@@ -97,7 +101,10 @@ def press_the_button(circuit: dict[str, Component]) -> dict[Pulse, int]:
     while queue:
         input_comp, comp, pulse = queue.popleft()
 
-        if comp.comp_type == ComponentType.BROADCASTER:
+        if comp.name == 'rx':
+            if pulse == Pulse.LOW:
+                raise Exception('rx tripped')
+        elif comp.comp_type == ComponentType.BROADCASTER:
             for output in comp.outputs:
                 queue.append((comp, output, pulse))
                 pulse_counts[pulse] += 1
@@ -124,13 +131,14 @@ def press_the_button(circuit: dict[str, Component]) -> dict[Pulse, int]:
                 queue.append((comp, output, output_pulse))
                 pulse_counts[output_pulse] += 1
 
+            if comp.all_high() and comp.name not in hits:
+                hits[comp.name] = iteration
+
     return pulse_counts
 
 
 def part1(lines: list[str]) -> int:
     circuit = parse(lines)
-
-    # pulse_counts = press_the_button(circuit)
 
     totals = collections.defaultdict(int)
 
@@ -143,7 +151,39 @@ def part1(lines: list[str]) -> int:
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    circuit = parse(lines)
+
+    conjunctions = [comp for comp in circuit.values() if comp.comp_type == ComponentType.CONJUNCTION]
+
+    press_count = 1
+
+    try:
+        hits = collections.defaultdict(int)
+
+        while True:
+            press_the_button(circuit, hits, press_count)
+            press_count += 1
+
+            conjunctions = [comp for comp in circuit.values() if comp.comp_type == ComponentType.CONJUNCTION]
+
+            # if all([c.name in hits for c in conjunctions]):
+            #     break
+
+            missing = [c.name for c in conjunctions if c.name not in hits]
+
+            if len(missing) == 1:
+                break
+
+            print(f'hits -> {hits}, press_count -> {press_count}, missing -> {missing}')
+
+        print(math.lcm(*hits.values()))
+        # print(hits)
+
+    except Exception as e:
+        if e.args[0] == 'rx tripped':
+            return press_count
+        else:
+            raise e
 
 
 class TestProg(unittest.TestCase):
@@ -163,12 +203,16 @@ class TestProg(unittest.TestCase):
         self.assertEqual(11687500, res)
 
     def test_part2(self):
+        with open('input1.txt') as f:
+            self.lines = f.read().strip().splitlines()
+
         res = part2(self.lines)
+        self.assertEqual(11687500, res)
 
 
 if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         lines = f.read().splitlines()
 
-    print(f'part1 -> {part1(lines)}')
+    # print(f'part1 -> {part1(lines)}')
     print(f'part2 -> {part2(lines)}')
