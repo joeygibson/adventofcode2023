@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import collections
 import enum
+import itertools
 import math
 import sys
 import unittest
@@ -91,7 +92,8 @@ def parse(lines: list[str]) -> dict[str, Component]:
     return components
 
 
-def press_the_button(circuit: dict[str, Component], hits: dict[str, int] = None, iteration: int = 1) -> dict[Pulse, int]:
+def press_the_button(circuit: dict[str, Component], hits: dict[str, int] = None, iteration: int = 1) -> dict[
+    Pulse, int]:
     pulse_counts: dict[Pulse, int] = collections.defaultdict(int)
     pulse_counts[Pulse.LOW] = 1
 
@@ -101,10 +103,7 @@ def press_the_button(circuit: dict[str, Component], hits: dict[str, int] = None,
     while queue:
         input_comp, comp, pulse = queue.popleft()
 
-        if comp.name == 'rx':
-            if pulse == Pulse.LOW:
-                raise Exception('rx tripped')
-        elif comp.comp_type == ComponentType.BROADCASTER:
+        if comp.comp_type == ComponentType.BROADCASTER:
             for output in comp.outputs:
                 queue.append((comp, output, pulse))
                 pulse_counts[pulse] += 1
@@ -131,7 +130,7 @@ def press_the_button(circuit: dict[str, Component], hits: dict[str, int] = None,
                 queue.append((comp, output, output_pulse))
                 pulse_counts[output_pulse] += 1
 
-            if comp.all_high() and comp.name not in hits:
+            if hits is not None and comp.all_high() and comp.name not in hits:
                 hits[comp.name] = iteration
 
     return pulse_counts
@@ -153,37 +152,24 @@ def part1(lines: list[str]) -> int:
 def part2(lines: list[str]) -> int:
     circuit = parse(lines)
 
-    conjunctions = [comp for comp in circuit.values() if comp.comp_type == ComponentType.CONJUNCTION]
+    hits = collections.defaultdict(int)
 
-    press_count = 1
+    for press_count in itertools.count(start=1):
+        press_the_button(circuit, hits, press_count)
+        press_count += 1
 
-    try:
-        hits = collections.defaultdict(int)
+        conjunctions = [comp for comp in circuit.values() if comp.comp_type == ComponentType.CONJUNCTION]
 
-        while True:
-            press_the_button(circuit, hits, press_count)
-            press_count += 1
+        missing = [c.name for c in conjunctions if c.name not in hits]
 
-            conjunctions = [comp for comp in circuit.values() if comp.comp_type == ComponentType.CONJUNCTION]
+        # this assumes that if there's only one conjunction that hasn't tripped,
+        # then it must be the one right before `rx`, so we can stop
+        if len(missing) == 1:
+            break
 
-            # if all([c.name in hits for c in conjunctions]):
-            #     break
-
-            missing = [c.name for c in conjunctions if c.name not in hits]
-
-            if len(missing) == 1:
-                break
-
-            print(f'hits -> {hits}, press_count -> {press_count}, missing -> {missing}')
-
-        print(math.lcm(*hits.values()))
-        # print(hits)
-
-    except Exception as e:
-        if e.args[0] == 'rx tripped':
-            return press_count
-        else:
-            raise e
+    # the LCM of all how long it took each conjunction to trip
+    # will tell us how long it takes for all of them to trip at the same time
+    return math.lcm(*hits.values())
 
 
 class TestProg(unittest.TestCase):
@@ -214,5 +200,5 @@ if __name__ == '__main__':
     with open(sys.argv[1]) as f:
         lines = f.read().splitlines()
 
-    # print(f'part1 -> {part1(lines)}')
+    print(f'part1 -> {part1(lines)}')
     print(f'part2 -> {part2(lines)}')
