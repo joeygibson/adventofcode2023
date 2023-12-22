@@ -3,7 +3,9 @@ import sys
 import unittest
 from collections import deque
 from queue import PriorityQueue
-from typing import Literal, Tuple
+from typing import Literal
+
+import numpy as np
 
 Direction = Literal["N", "S", "E", "W"]
 
@@ -74,7 +76,7 @@ def is_garden_spot(graph, node):
     row, col = node
     return (0 <= row < len(graph)
             and 0 <= col < len(graph[0])
-            and graph[row][col] == '.')
+            and graph[row][col] != '#')
 
 
 def bfs(graph, node, max_steps: int) -> int:  # function for BFS
@@ -95,6 +97,25 @@ def bfs(graph, node, max_steps: int) -> int:  # function for BFS
     return len([(row, col) for row, col in visited if (row + col) % 2 == max_steps % 2])
 
 
+# def expand_map(graph, factor):
+#     return tuple(
+#         tuple(
+#             graph[i % len(graph)][j % len(graph[0])]
+#             for j in range(factor * len(graph[0]))
+#         )
+#         for i in range(factor * len(graph))
+#     )
+
+def expand_matrix(matrix, factor):
+    return [
+        [
+            matrix[i % len(matrix)][j % len(matrix[0])]
+            for j in range(factor * len(matrix[0]))
+        ]
+        for i in range(factor * len(matrix))
+    ]
+
+
 def part1(data: str, how_far_away: int) -> int:
     the_map: tuple[tuple[str, ...], ...] = parse_data(data)
 
@@ -107,8 +128,21 @@ def part1(data: str, how_far_away: int) -> int:
     return spots + 1
 
 
-def part2(lines: list[str]) -> int:
-    pass
+def part2(data: str, how_far_away: int) -> int:
+    the_map: tuple[tuple[str, ...], ...] = parse_data(data)
+
+    start = len(the_map) // 2, len(the_map) // 2
+
+    the_map = expand_matrix(the_map, 5)
+
+    ys = [bfs(the_map, start, max_steps) for max_steps in [65, 196, 327]]
+    xs = np.array([0, 1, 2])
+
+    target = (how_far_away - 65) // 131
+    coeffs = np.polyfit(xs, ys, 2)
+
+    res = np.polyval(coeffs, target)
+    return np.round(res, 0).astype(int)
 
 
 class TestProg(unittest.TestCase):
@@ -121,7 +155,11 @@ class TestProg(unittest.TestCase):
         self.assertEqual(16, res)
 
     def test_part2(self):
-        res = part2(self.data)
+        with open('input1.txt') as f:
+            self.data = f.read().strip()
+
+        res = part2(self.data, 26_501_365)
+        print(res)
 
 
 if __name__ == '__main__':
@@ -129,4 +167,4 @@ if __name__ == '__main__':
         data = f.read().strip()
 
     print(f'part1 -> {part1(data, 64)}')
-    print(f'part2 -> {part2(data)}')
+    print(f'part2 -> {part2(data, 26_501_365)}')
