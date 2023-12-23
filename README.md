@@ -8,3 +8,9 @@ dropped out half-way through the month.)
 * For [AoC 2022](https://github.com/joeygibson/adventofcode2022), I did them all in [Kotlin](https://kotlinlang.org). 
 
 For 2023, I'm back to [Python](https://www.python.org).
+
+## Notes:
+
+* Run `aocd --example > input0.txt` to download the example input for the day.
+* Run `aocd > input1.txt` to download the real input for the day.
+
