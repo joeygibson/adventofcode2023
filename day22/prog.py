@@ -3,6 +3,7 @@ import sys
 import unittest
 from queue import PriorityQueue
 
+# This code was lifted, pretty much wholesale, from https://github.com/GoossensMichael/aoc/blob/master/aoc2023/Day22.py
 
 class Brick:
     def __init__(self, start, end):
@@ -69,9 +70,17 @@ def do_the_work(lines: list[str]) -> tuple[int, int]:
         else:
             count_part1 += 1
 
-    count_part2 = 0
+    cnt_p2 = 0
+    for stable_brick in stable_bricks:
+        fall_stack = [s for s in stable_brick.supporting if len(s.support) == 1]
+        fallen = set()
+        while len(fall_stack) > 0:
+            falling_brick = fall_stack.pop(0)
+            fallen.add(falling_brick)
+            fall_stack.extend([s for s in falling_brick.supporting if len(set(s.support).difference(fallen)) == 0])
+        cnt_p2 += len(fallen)
 
-    return count_part1, count_part2
+    return count_part1, cnt_p2
 
 
 def part1(lines: list[str]) -> int:
@@ -81,7 +90,9 @@ def part1(lines: list[str]) -> int:
 
 
 def part2(lines: list[str]) -> int:
-    pass
+    res = do_the_work(lines)
+
+    return res[1]
 
 
 class TestProg(unittest.TestCase):
