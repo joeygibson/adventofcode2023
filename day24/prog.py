@@ -70,13 +70,26 @@ def find_intersection(stone1: HailStone, stone2: HailStone,
 
 
 def part1(lines: list[str], lower_bound: float, upper_bound: float) -> float:
-    stones = parse(lines)
+    # from https://topaz.github.io/paste/#XQAAAQDXAQAAAAAAAAAzHIoib6p4r/McpYgEEgWhHoa5LSRMkVi92ASWXgRJn/53WGzZWzJlNzR/LeXSZEQnBkC+jD+efAupRol5bOfXbJwxvGQUitWOYhQnNhp1IIb+hfC8AaLOFmv4wIp5CzBQKrm28BEIBOYFbMPy6M2OXUGYq6JCT3QdyxTKD9DDQMSJxrkOB+NWjG5qDNsvSBbbPvS8lG4/FpPx+2veExcgoc1tAwTU3Qm0SgsCtVQWHI8I9jxt0YehRiYZefxqvZeYrbI8+6F96APmhePvuzdZx6sQKKM7WruVIJMd2iHAHtqgpWUDcatGq6vrkXen6cKjBzq8duXJkYDM8SV3HoxzxXUgJfO9HTRN5uEMWvpTuvENABmirX26SLG3RvsnrTclw2wWBwFbEjx1XcLavGTkik//6bcLRA==
+    
+    stones = [[int(i) for i in l.replace('@', ',').split(',')]
+              for l in lines]
+    hits = 0
 
-    combos = itertools.combinations(stones, 2)
+    for pair in itertools.combinations(stones, 2):
+        (x, y, _, dx, dy, _), (u, v, _, du, dv, _) = pair
 
-    intersections = {(s1, s2): find_intersection(s1, s2, lower_bound, upper_bound) for s1, s2 in combos}
+        if dy * du == dx * dv:
+            continue
 
-    return sum(1 for i in intersections.values() if i)
+        t1 = (dv * (x - u) - du * (y - v)) / (dy * du - dx * dv)
+        t2 = (dy * (u - x) - dx * (v - y)) / (dv * dx - du * dy)
+
+        if t1 > 0 and 2e14 < x + t1 * dx < 4e14 \
+                and t2 > 0 and 2e14 < y + t1 * dy < 4e14:
+            hits += 1
+
+    return hits
 
 
 def part2(lines: list[str]) -> float:
