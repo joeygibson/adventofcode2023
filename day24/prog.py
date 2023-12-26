@@ -71,7 +71,7 @@ def find_intersection(stone1: HailStone, stone2: HailStone,
 
 def part1(lines: list[str], lower_bound: float, upper_bound: float) -> float:
     # from https://topaz.github.io/paste/#XQAAAQDXAQAAAAAAAAAzHIoib6p4r/McpYgEEgWhHoa5LSRMkVi92ASWXgRJn/53WGzZWzJlNzR/LeXSZEQnBkC+jD+efAupRol5bOfXbJwxvGQUitWOYhQnNhp1IIb+hfC8AaLOFmv4wIp5CzBQKrm28BEIBOYFbMPy6M2OXUGYq6JCT3QdyxTKD9DDQMSJxrkOB+NWjG5qDNsvSBbbPvS8lG4/FpPx+2veExcgoc1tAwTU3Qm0SgsCtVQWHI8I9jxt0YehRiYZefxqvZeYrbI8+6F96APmhePvuzdZx6sQKKM7WruVIJMd2iHAHtqgpWUDcatGq6vrkXen6cKjBzq8duXJkYDM8SV3HoxzxXUgJfO9HTRN5uEMWvpTuvENABmirX26SLG3RvsnrTclw2wWBwFbEjx1XcLavGTkik//6bcLRA==
-    
+
     stones = [[int(i) for i in l.replace('@', ',').split(',')]
               for l in lines]
     hits = 0
