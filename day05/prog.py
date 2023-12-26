@@ -80,36 +80,100 @@ def part1(lines: list[str]) -> int:
     return min(locations)
 
 
+def process_seed_range(seed_range: range, maps: dict[str, ThingToThingMap]) -> list[int]:
+    locations: list[int] = []
+
+    for seed in seed_range:
+        soil = maps['seed-to-soil'].map_input(seed)
+        fertilizer = maps['soil-to-fertilizer'].map_input(soil)
+        water = maps['fertilizer-to-water'].map_input(fertilizer)
+        light = maps['water-to-light'].map_input(water)
+        temperature = maps['light-to-temperature'].map_input(light)
+        humidity = maps['temperature-to-humidity'].map_input(temperature)
+        location = maps['humidity-to-location'].map_input(humidity)
+
+        locations.append(location)
+
+    return locations
+
+
+# def remap(start: int, end: int, seeds: list[tuple[int, int]],
+#           new_seeds: list[tuple[int, int]], m: list[int]):
+#     for dest_range_start, src_range_start, range_len in m:
+#         # check if ranges overlap
+#         overlap_start = max(start, src_range_start)
+#         overlap_end = min(end, src_range_start + range_len)
+#
+#         if overlap_start < overlap_end:
+#             new_seeds.append(
+#                 (
+#                     dest_range_start + (overlap_start - src_range_start),
+#                     dest_range_start + (overlap_end - src_range_start),
+#                 )
+#             )
+#
+#             if start < overlap_start:
+#                 seeds.append((start, overlap_start))
+#
+#             if overlap_end < end:
+#                 seeds.append((overlap_end, end))
+#
+#             break
+#         else:
+#             # if no overlap, add original range to new_seeds
+#             new_seeds.append((start, end))
+
+
 def part2(lines: list[str]) -> int:
-    seed_ranges: list[range] = []
+    # borrowed from https://github.com/xHyroM/aoc/blob/main/2023/05/second_without_bruteforce.py
+    seeds = []
 
     seed_seeds = [int(chunk) for chunk in lines[0].split()[1:]]
 
     for seed_seed in itertools.batched(seed_seeds, 2):
-        seed_ranges.append(range(seed_seed[0], seed_seed[0] + seed_seed[1]))
+        seeds.append((seed_seed[0], seed_seed[0] + seed_seed[1]))
+
+    def remap(start: int, end: int, new_seeds: list[tuple[int]], m: list[int]) -> int:
+        for destination_range_start, source_range_start, range_length in m:
+            # Check if the ranges overlap
+            overlap_start = max(start, source_range_start)
+            overlap_end = min(end, source_range_start + range_length)
+
+            if overlap_start < overlap_end:
+                new_seeds.append(
+                    (
+                        destination_range_start + (overlap_start - source_range_start),
+                        destination_range_start + (overlap_end - source_range_start),
+                    )
+                )
+
+                if start < overlap_start:
+                    seeds.append((start, overlap_start))
+
+                if overlap_end < end:
+                    seeds.append((overlap_end, end))
+
+                break
+        else:
+            # If no overlap, just add the original range to the new seeds
+            new_seeds.append((start, end))
 
     sections = split_out_sections(lines[2:])
 
-    maps = create_maps(sections)
+    maps = []
 
-    locations: list[int] = []
+    for section in sections:
+        maps.append([[int(chunk) for chunk in line.split()] for line in section[1:]])
 
-    for seed_range in seed_ranges:
-        for seed in seed_range:
-            soil = maps['seed-to-soil'].map_input(seed)
-            fertilizer = maps['soil-to-fertilizer'].map_input(soil)
-            water = maps['fertilizer-to-water'].map_input(fertilizer)
-            light = maps['water-to-light'].map_input(water)
-            temperature = maps['light-to-temperature'].map_input(light)
-            humidity = maps['temperature-to-humidity'].map_input(temperature)
-            location = maps['humidity-to-location'].map_input(humidity)
+    for m in maps:
+        new_seeds = []
+        while len(seeds) > 0:
+            start, end = seeds.pop()
+            remap(start, end, new_seeds, m)
 
-            # print(f'seed {seed} -> soil {soil} -> fertilizer {fertilizer} -> water {water} -> light {light} -> '
-            #       f'temperature {temperature} -> humidity {humidity} -> location {location}')
+        seeds = new_seeds
 
-            locations.append(location)
-
-    return min(locations)
+    return min(seeds)[0]
 
 
 class TestDay5(unittest.TestCase):
@@ -120,7 +184,7 @@ class TestDay5(unittest.TestCase):
         part1(lines)
 
     def test_part2(self):
-        with open('input0.txt') as f:
+        with open('input1.txt') as f:
             lines = f.read().splitlines()
 
         part2(lines)
