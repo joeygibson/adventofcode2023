@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import itertools
+import random
 import sys
 import unittest
 from collections import defaultdict, deque
@@ -7,6 +8,85 @@ from random import choice
 from typing import Any
 
 import graphviz
+
+
+class KargerMinCut:
+    def __init__(self, lines: list[str]):
+        self.graph = defaultdict(list)
+        self.edges = 0
+        self.vertex_count = 0
+
+        for line in lines:
+            values = line.replace(':', '').split(' ')
+            vertex = values[0]
+            vertex_edges = values[1:]
+            self.graph[vertex] = vertex_edges
+            self.edges += len(vertex_edges)
+            self.vertex_count += 1
+
+            for edge in vertex_edges:
+                self.graph[edge].append(vertex)
+                self.edges += 1
+                self.vertex_count += 1
+
+        self.supervertices = {}
+
+        for key in self.graph:
+            self.supervertices[key] = [key]
+
+    def search_min_cut(self) -> int:
+        minimum_cut = 0
+
+        while len(self.graph) > 2:
+            # pick a random edge
+            vertex1, vertex2 = self.pick_random_edge()
+            self.edges -= len(self.graph[vertex1])
+            self.edges -= len(self.graph[vertex2])
+
+            # merge the edges
+            self.graph[vertex1].extend(self.graph[vertex2])
+
+            # update every vertex that points to vertex2 to point to vertex1
+            for vertex in self.graph[vertex2]:
+                if vertex2 in self.graph[vertex]:
+                    self.graph[vertex].remove(vertex2)
+
+                self.graph[vertex].append(vertex1)
+
+            # remove self loops
+            self.graph[vertex1] = [x for x in self.graph[vertex1] if x != vertex1]
+
+            # update total edges of graph
+            self.edges += len(self.graph[vertex1])
+            self.graph.pop(vertex2)
+
+            # update the grouping in the graph
+            if vertex2 in self.supervertices[vertex1]:
+                self.supervertices[vertex1].extend(self.supervertices.pop(vertex2))
+
+        # now we calculate the minimum cut
+        for edges in self.graph.values():
+            minimum_cut = len(edges)
+
+        # finally return the minimum cut and the two supervertices
+        return minimum_cut, self.supervertices
+
+    def pick_random_edge(self) -> tuple[str, str]:
+        # rand_edge = random.randint(0, self.edges - 1)
+        # rand_edge_idx = random.randint(0, self.edges - 1)
+        # rand_edge = list(self.graph.keys())[rand_edge_idx]
+        # for vertex, vertex_edges in self.graph.items():
+        #     if len(vertex_edges) < rand_edge:
+        #         rand_edge -= len(vertex_edges)
+        #     else:
+        #         from_vertex = vertex
+        #         to_vertex = vertex_edges[rand_edge - 1]
+        #         return from_vertex, to_vertex
+
+        from_vertex = choice(list(self.graph.keys()))
+        to_vertex = choice(self.graph[from_vertex])
+
+        return from_vertex, to_vertex
 
 
 def visualize(graph: dict[str, set]) -> None:
@@ -26,78 +106,62 @@ def visualize(graph: dict[str, set]) -> None:
     dot.render('graph.png', view=True)
 
 
-def parse(lines: list[str]) -> defaultdict[Any, set]:
-    graph = defaultdict(set)
+def parse(lines: list[str]) -> defaultdict[Any, list]:
+    graph = defaultdict(list)
 
     for line in lines:
         parts = line.replace(':', '').split(' ')
 
         for part in parts[1:]:
-            graph[parts[0]].add(part)
-            graph[part].add(parts[0])
+            graph[parts[0]].append(part)
+            graph[part].append(parts[0])
 
     return graph
 
 
-def bfs(graph, node, dest) -> list[str]:
-    visited = []
-    queue = deque([(node, 0)])
-
-    while queue:
-        node, dist = queue.popleft()
-
-        if node == dest:
-            break
-
-        for neighbor in graph[node]:
-            if neighbor not in visited:
-                visited.append(neighbor)
-                queue.append((neighbor, dist + 1))
-
-    return visited
-
-
 def part1(lines: list[str]) -> int:
     parts = parse(lines)
-    # visualize(parts)
-
-    total_nodes = len(parts.keys())
-
-    a = choice(list(parts.keys()))
-    b = choice(list(parts.keys()))
-
-    for _ in range(4):
-        path = bfs(parts, a, b)
-        print(f'path -> {path}')
-
-        if path:
-            for node in path:
-                if a in parts[node]:
-                    parts[node].remove(a)
-                if node in parts[a]:
-                    parts[a].remove(node)
-        else:
-            print(f'no path between {a} and {b}')
-
-
-
-
-
-    # paths = {}
-    # for a, b in itertools.combinations(parts.keys(), 2):
-    #     path = bfs(parts, a, b)
-    #     paths[(a, b)] = path
-    # print(f'distances -> {distances}')
     #
-    # commonalities = defaultdict(int)
+    # graph = KargerMinCut(lines)
+    # output = graph.search_min_cut()
+    # minimum_cut = output[0]
+    # supervertices = output[1]
     #
-    # for head, path in distances.items():
-    #     for node in path:
-    #         normalized_name = ', '.join(sorted([head[0], node]))
-    #         commonalities[normalized_name] += 1
-    #
-    # sorted_by_distance = dict(reversed(sorted(commonalities.items(), key=lambda x: x[1])))
-    # print(f'commonalities -> {sorted_by_distance}')
+    # print(supervertices)
+
+    # graph = {'jqt': ['rhn'],
+    #          'rsh': ['frs', 'pzl', 'lsr'],
+    #          'xhk': ['hfx'],
+    #          'cmg': ['qnr', 'nvd', 'lhk', 'bvb'],
+    #          'rhn': ['xhk', 'bvb', 'hfx'],
+    #          'bvb': ['xhk', 'hfx'],
+    #          'pzl': ['lsr', 'hfx', 'nvd'],
+    #          'qnr': ['nvd'],
+    #          'ntq': ['jqt', 'hfx', 'bvb', 'xhk'],
+    #          'nvd': ['lhk'],
+    #          'lsr': ['lhk'],
+    #          'rzs': ['qnr', 'cmg', 'lsr', 'rsh'],
+    #          'frs': ['qnr', 'lhk', 'lsr']}
+
+    min_edges = float('inf')
+
+    for i in range(1000):
+
+        copy = parts.copy()
+
+        while len(copy) > 2:
+            u = random.choice(list(copy.keys()))
+            v = random.choice(copy[u])
+            copy[u].remove(v)
+            copy[v].remove(u)
+            if u in copy and v in copy:
+                copy[u].extend(copy[v])
+                copy[v] = None
+
+        edges = sum(len(nodes) for nodes in copy.values() if nodes)
+        min_edges = min(min_edges, edges)
+
+    print(min_edges)
 
 
 def part2(lines: list[str]) -> int:
