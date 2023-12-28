@@ -2,6 +2,8 @@
 import sys
 import unittest
 
+import numpy as np
+
 
 def parse(lines: list[str]) -> list[list[str]]:
     return [list(l) for l in lines]
@@ -45,54 +47,40 @@ def part1(lines: list[str]) -> int:
     reflected_rows = 0
 
     for section in sections:
-        matrix = parse(section)
+        data = parse(section)
+        matrix = np.array(data)
 
-        vertical_matches = False
+        # look for vertical matches
+        for i in range(1, len(matrix[0])):
+            first, second = np.array_split(matrix, [i], axis=1)
+            first_flipped = np.fliplr(first)
 
-        # vertical
-        for i in range(len(matrix)):
-            first_piece, second_piece = fold_vertically(matrix, i + 1)
+            if len(first_flipped[0]) < len(second[0]):
+                first_cmp = first_flipped
+                second_cmp = np.delete(second, np.s_[len(first_flipped[0]):], axis=1)
+            else:
+                first_cmp = np.delete(first_flipped, np.s_[len(second[0]):], axis=1)
+                second_cmp = second
 
-            reflects = False
-
-            for f, s in zip(first_piece, second_piece):
-                if len(f) > len(s):
-                    f_cmp = list(reversed(f))[:len(s)]
-                    s_cmp = s
-                elif len(f) < len(s):
-                    f_cmp = f
-                    s_cmp = s[:len(f)]
-                else:
-                    f_cmp = f
-                    s_cmp = s
-
-                if list(reversed(f_cmp)) != s_cmp:
-                    break
-
-                reflects = True
-
-            results = list(map(lambda x: x[0] == x[1], zip(reversed(first_piece), second_piece)))
-
-            if reflects:
-                reflected_columns += len(first_piece[0])
-                vertical_matches = True
-                continue
-
-        if vertical_matches:
-            continue
-
-        # horizontal
-        for i in range(len(matrix[0]) - 1):
-            first_piece, second_piece = fold_horizontally(matrix, i + 1)
-
-            results = list(map(lambda x: x[0] == x[1], zip(reversed(first_piece), second_piece)))
-
-            if results and all(results):
-                reflected_rows += len(first_piece)
+            if np.array_equal(first_cmp, second_cmp):
+                reflected_columns += len(first[0])
                 break
 
-    print(f'reflected_columns: {reflected_columns}')
-    print(f'reflected_rows: {reflected_rows}')
+        # look for horizontal matches
+        for i in range(1, len(matrix)):
+            first, second = np.array_split(matrix, [i], axis=0)
+            first_flipped = np.flipud(first)
+
+            if len(first_flipped) < len(second):
+                first_cmp = first_flipped
+                second_cmp = np.delete(second, np.s_[len(first_flipped):], axis=0)
+            else:
+                first_cmp = np.delete(first_flipped, np.s_[len(second):], axis=0)
+                second_cmp = second
+
+            if np.array_equal(first_cmp, second_cmp):
+                reflected_rows += len(first)
+                break
 
     return reflected_columns + (reflected_rows * 100)
 
