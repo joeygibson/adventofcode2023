@@ -3,3 +3,5 @@ advent-of-code-data
 browser-cookie3
 graphviz
 networkx
+sympy
+
