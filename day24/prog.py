@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import itertools
+import re
 import sys
 import unittest
+
+import sympy
 
 
 class HailStone:
@@ -93,7 +96,38 @@ def part1(lines: list[str], lower_bound: float, upper_bound: float) -> float:
 
 
 def part2(lines: list[str]) -> float:
-    pass
+    # from https://github.com/marcodelmastro/AdventOfCode2023/blob/main/Day24.ipynb
+    stones = []
+
+    for line in lines:
+        m = re.match(r'(\d+),\s+(\d+),\s+(\d+)\s+@\s+(-?\d+),\s+(-?\d+),\s+(-?\d+)', line)
+        x = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        v = (int(m.group(4)), int(m.group(5)), int(m.group(6)))
+        stones.append((x, v))
+
+    x = sympy.symbols('x')
+    y = sympy.symbols('y')
+    z = sympy.symbols('z')
+    vx = sympy.symbols('vx')
+    vy = sympy.symbols('vy')
+    vz = sympy.symbols('vz')
+
+    (x1, y1, z1), (vx1, vy1, vz1) = stones[0]
+    (x2, y2, z2), (vx2, vy2, vz2) = stones[1]
+    (x3, y3, z3), (vx3, vy3, vz3) = stones[2]
+
+    solutions = sympy.solve(
+        [(x - x1) * (vy - vy1) - (y - y1) * (vx - vx1), (y - y1) * (vz - vz1) - (z - z1) * (vy - vy1),
+         (x - x2) * (vy - vy2) - (y - y2) * (vx - vx2), (y - y2) * (vz - vz2) - (z - z2) * (vy - vy2),
+         (x - x3) * (vy - vy3) - (y - y3) * (vx - vx3), (y - y3) * (vz - vz3) - (z - z3) * (vy - vy3)],
+        [x, y, z, vx, vy, vz], dict=True)
+
+    for s in solutions:
+        if s[vx] == int(s[vx]) and s[vy] == int(s[vy]) and s[vz] == int(s[vz]):
+            print(s)
+            break
+
+    return s[x] + s[y] + s[z]
 
 
 class TestProg(unittest.TestCase):
