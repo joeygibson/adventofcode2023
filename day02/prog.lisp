@@ -36,8 +36,8 @@
               game-lines)
       games)))
 
-(defun part1 (file_name)
-  (let ((games (get-input file_name))
+(defun part1 (file-name)
+  (let ((games (get-input file-name))
         (possible-games nil))
     (loop for key being the hash-keys of games
             using (hash-value value)
@@ -47,7 +47,23 @@
                  (push (parse-integer key) possible-games)))
     (reduce #'+ possible-games)))
 
+(defun part2 (file-name)
+  (let* ((games (loop for v being the hash-value of (get-input file-name)
+                      collecting v))
+         (powers
+           (mapcar (lambda (game)
+                     (let* ((values (loop for v
+                                            being the hash-value
+                                              of game
+                                          collecting v)))
+                       (reduce #'* values)))
+                   games)))
+    (reduce #'+ powers)))
+
+(print (part1 "input0.txt"))
+(print (part2 "input0.txt"))
 (print (part1 "input1.txt"))
+(print (part2 "input1.txt"))
 
 
 
