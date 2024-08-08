@@ -19,7 +19,7 @@
                                                       start
                                                       end)))
                                             groups)))))
-    (remove-if #'null results)))
+    (apply #'append (remove-if #'null results))))
 
 (defun find-symbols (lines)
   (let ((results (loop for line-no from 0
@@ -50,50 +50,46 @@
                  symbols))
 
 (defun find-numbers-near-symbols (symbols numbers)
-  (mapcar (lambda (num)
-            (let ((prev-row-symbols (remove-if-not (lambda (s)
-                                                     (equal (cadr s)
-                                                          (1- (cadr num))))
-                                                   symbols))
-                  ;; (next-row-symbols (remove-if-not (lambda (s)
-                  ;;                                    (equal (cadr s)
-                  ;;                                         (1+ (cadr num))))
-                  ;;                                  symbols))
-                  ;; (cur-row-symbols (remove-if-not (lambda (s)
-                  ;;                                   (equal (cadr s)
-                  ;;                                        (cadr num)))
-                  ;;                                 symbols))
-                  )
-              (if (or (and prev-row-symbols
-                           (is-num-near-symbol num prev-row-symbols))
-                      (and next-row-symbols
-                           (is-num-near-symbol num next-row-symbols))
-                      (and cur-row-symbols
-                           (is-num-near-symbol num cur-row-symbols)))
-                  (car num))))
-          numbers))
+  (remove-if #'null
+             (mapcar (lambda (num)
+                       (let ((prev-row-symbols (remove-if-not (lambda (s)
+                                                                (equal (cadr s)
+                                                                       (1- (cadr num))))
+                                                              symbols))
+                             (next-row-symbols (remove-if-not (lambda (s)
+                                                                (equal (cadr s)
+                                                                       (1+ (cadr num))))
+                                                              symbols))
+                             (cur-row-symbols (remove-if-not (lambda (s)
+                                                               (equal (cadr s)
+                                                                      (cadr num)))
+                                                             symbols))
+                             )
+                         (if (or (and prev-row-symbols
+                                      (is-num-near-symbol num prev-row-symbols))
+                                 (and next-row-symbols
+                                      (is-num-near-symbol num next-row-symbols))
+                                 (and cur-row-symbols
+                                      (is-num-near-symbol num cur-row-symbols)))
+                             (car num))))
+                     numbers)))
 
 (defun part1 (file-name)
   (let* ((lines (uiop:read-file-lines file-name))
          (symbols (find-symbols lines))
          (numbers (find-numbers lines))
          (vals (find-numbers-near-symbols symbols numbers)))
+    (print vals)
     (reduce #'+ vals)))
 
 (part1 "input0.txt")
 
 (let* ((numbers (find-numbers (uiop:read-file-lines "input0.txt")))
        (symbols (find-symbols (uiop:read-file-lines "input0.txt"))))
-  (mapcar (lambda (num)
-            (let ((prev-row (remove-if-not (lambda (s)
-                                             (format t "num: ~a~%" num)
-                                             (format t "s cadr: ~a~%" (cadr s))
-                                             (format t "n cadr: ~a~%" (1- (cadr num)))
-                                             (equal (cadr s)
-                                                    (1- (cadr num))))
-                                           symbols)))))
-          numbers))
-          
+  (print numbers)
+  (print symbols))
+
+
 
 
 
