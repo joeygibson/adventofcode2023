@@ -33,26 +33,24 @@
                            (let ((cnt (length numbers)))
                              (expt 2 (1- cnt))))
                          winners)))
-    (reduce #'+ values)))
+    (print (reduce #'+ values))))
 
 (defun part2 (file-name)
   (let* ((tickets (find-matches file-name))
          (queue (queues:make-queue :simple-queue))
-         (scratched (make-hash-table :test #'equal)))
+         (total-tickets 0))
     (loop for i from 0
           for ticket in tickets do (queues:qpush queue (list i ticket)))
     (loop for val = (queues:qpop queue) while val
           do (progn
-               (setf (gethash (car val) scratched) (cons val (gethash (car val) scratched)))
+               (incf total-tickets)
                (if (cadr val)
-                   (progn
-                     (let* ((start (1+ (car val)))
-                            (end (+ start (length (cadr val))))
-                            (copies (subseq tickets start end)))
-                       (loop for i from start
-                             for ticket in copies do (queues:qpush queue (list i ticket))))))))
-    (loop for k being the hash-keys in scratched
-          summing (length (gethash k scratched)))))
+                   (let* ((start (1+ (car val)))
+                          (end (+ start (length (cadr val))))
+                          (copies (subseq tickets start end)))
+                     (loop for i from start
+                           for ticket in copies do (queues:qpush queue (list i ticket)))))))
+    (print total-tickets)))
 
 (part1 "input0.txt")
 (part1 "input1.txt")
