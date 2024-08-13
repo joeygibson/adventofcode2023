@@ -16,11 +16,12 @@
                (setf (gethash src-range ranges) dest-range)))
     ranges))
 
-(defun map-input (thing-map input)
-  (loop for k being the hash-keys of thing-map
-        when (member input k)
-          return (+ (- input (first k))
-                    (first (gethash k thing-map)))))
+(defun map-input (maps map-name input)
+  (let* ((thing-map (gethash map-name maps)))
+    (loop for k being the hash-keys of thing-map
+          when (member input k)
+            return (+ (- input (first k))
+                      (first (gethash k thing-map))))))
 
 (defun print-things (thing-map)
   (maphash (lambda (k v)
@@ -44,13 +45,13 @@
          (maps (create-maps sections))
          (locations
            (mapcar (lambda (seed)
-                     (let* ((soil (map-input (gethash "seed-to-soil" maps) seed))
-                            (fertilizer (map-input (gethash "soil-to-fertilizer" maps) soil))
-                            (water (map-input (gethash "fertilizer-to-water" maps) fertilizer))
-                            (light (map-input (gethash "water-to-light" maps) water))
-                            (temperature (map-input (gethash "light-to-temperature" maps) light))
-                            (humidity (map-input (gethash "temperature-to-humidity" maps) temperature))
-                            (location (map-input (gethash "humidity-to-loation" maps) humidity)))
+                     (let* ((soil (map-input maps "seed-to-soil" seed))
+                            (fertilizer (map-input maps "soil-to-fertilizer" soil))
+                            (water (map-input maps "fertilizer-to-water" fertilizer))
+                            (light (map-input maps "water-to-light" water))
+                            (temperature (map-input maps "light-to-temperature" light))
+                            (humidity (map-input maps "temperature-to-humidity" temperature))
+                            (location (map-input maps "humidity-to-loation" humidity)))
                        location))
                    seeds)))
     locations))
