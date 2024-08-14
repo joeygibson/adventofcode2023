@@ -60,6 +60,7 @@
     (apply #'min locations)))
 
 (format t "~&part1: ~a~%"  (part1 "input0.txt"))
+;; (format t "~&part1: ~a~%"  (part1 "input1.txt"))
 
 
 
