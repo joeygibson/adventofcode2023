@@ -17,11 +17,14 @@
     ranges))
 
 (defun map-input (maps map-name input)
-  (let* ((thing-map (gethash map-name maps)))
-    (loop for k being the hash-keys of thing-map
-          when (member input k)
-            return (+ (- input (first k))
-                      (first (gethash k thing-map))))))
+  (let* ((thing-map (gethash map-name maps))
+         (mapped-val (loop for k being the hash-keys of thing-map
+                           when (member input k)
+                             return (+ (- input (first k))
+                                       (first (gethash k thing-map))))))
+    (if mapped-val
+        mapped-val
+        input)))
 
 (defun print-things (thing-map)
   (maphash (lambda (k v)
@@ -51,12 +54,12 @@
                             (light (map-input maps "water-to-light" water))
                             (temperature (map-input maps "light-to-temperature" light))
                             (humidity (map-input maps "temperature-to-humidity" temperature))
-                            (location (map-input maps "humidity-to-loation" humidity)))
+                            (location (map-input maps "humidity-to-location" humidity)))
                        location))
                    seeds)))
-    locations))
+    (apply #'min locations)))
 
-(part1 "input0.txt")
+(format t "~&part1: ~a~%"  (part1 "input0.txt"))
 
 
 
