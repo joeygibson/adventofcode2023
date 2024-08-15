@@ -11,15 +11,15 @@
                     (dest-start (first chunks))
                     (src-start (second chunks))
                     (length (third chunks))
-                    (dest-range (loop for i from dest-start to (1- (+ dest-start length)) collecting i))
-                    (src-range (loop for i from src-start to (1- (+ src-start length)) collecting i)))
+                    (dest-range (list dest-start (1- (+ dest-start length))))
+                    (src-range (list src-start (1- (+ src-start length)))))
                (setf (gethash src-range ranges) dest-range)))
     ranges))
 
 (defun map-input (maps map-name input)
   (let* ((thing-map (gethash map-name maps))
          (mapped-val (loop for k being the hash-keys of thing-map
-                           when (member input k)
+                           when (<= (first k) input (second k))
                              return (+ (- input (first k))
                                        (first (gethash k thing-map))))))
     (if mapped-val
@@ -60,7 +60,8 @@
     (apply #'min locations)))
 
 (format t "~&part1: ~a~%"  (part1 "input0.txt"))
-;; (format t "~&part1: ~a~%"  (part1 "input1.txt"))
+(format t "~&part1: ~a~%"  (part1 "input1.txt"))
+
 
 
 
