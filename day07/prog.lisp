@@ -1,5 +1,7 @@
 ;; day 7
 
+(declaim (optimize (speed 0) (space 0) (debug 3)))
+
 (require :cl-ppcre)
 
 (defparameter *face-cards* (let ((ht (make-hash-table :test #'equal)))
@@ -23,15 +25,61 @@
     :initarg :card-counts
     :reader card-counts)))
 
-(defun make-hand (cards bid)
+(defun make-hand (cards bid &key has-wild-cards)
   (let ((split-cards (cl-ppcre:split "" cards))
         (card-counts (make-hash-table :test #'equal)))
     (loop for card in split-cards
           do (incf (gethash card card-counts 0)))
-    
-    (make-instance 'hand :cards split-cards
-                         :bid bid
-                         :card-counts card-counts)))
+
+    (let ((hand (make-instance 'hand :cards split-cards
+                                     :bid (parse-integer bid)
+                                     :card-counts card-counts)))
+      (if has-wild-cards
+          (let ((jokers (count "J" split-cards :test #'equal))
+                (cur-strength (strength hand)))
+            (if jokers
+                (progn
+                  (remhash "J" (card-counts hand))
+                  (let* ((high-key
+                           (cond ((= cur-strength 7) "K")
+                                 ((= cur-strength 6) (get-high-card hand 4))
+                                 ((= cur-strength 5) (get-high-card hand 3))
+                                 ((= cur-strength 4) (get-high-card hand 3))
+                                 ((= cur-strength 3) (get-high-card hand 2))
+                                 ((= cur-strength 2) (get-high-card hand 2))
+                                 ((= cur-strength 1) (car (sort (loop for k being the hash-keys of card-counts
+                                                                      collecting k)
+                                                                #'string-lessp))))))
+
+                    (if (not high-key)
+                        (error "unknown strength"))
+                    
+                    (setf (gethash high-key card-counts)
+                          (+ (gethash high-key card-counts 0)
+                             jokers)))))))
+      hand)))
+
+(let ((cc (make-hash-table :test #'equal)))
+  (setf (gethash 5 cc) 1)
+  (setf (gethash 5 cc) 1)
+  (last (sort (loop for k being the hash-keys of cc collecting k)
+              #'string-lessp)))
+
+(defmethod get-high-card ((hand hand) cnt)
+  (with-slots (card-counts) hand
+    (let ((high-card (loop for k being the hash-keys of card-counts
+                           when (= (gethash k card-counts) cnt)
+                             return k)))
+      (if high-card
+          high-card
+          (let ((res (car (sort (loop for k being the hash-keys of card-counts
+                                      collecting k)
+                                #'string-lessp))))
+            res)))))
+
+;; (defmethod print-object ((hand hand) stream)
+;;   (print-unreadable-object (hand stream :type t :identity t)
+;;     (format stream (print-hand hand))))
 
 (defmethod print-hand ((hand hand))
   (with-slots (cards bid card-counts) hand
@@ -94,7 +142,8 @@
                (if (< sc oc)
                    (progn
                      (setf return-value -1)
-                     (return-from loop))
+                     (return-from loop)))
+               (if (> sc oc)
                    (progn
                      (setf return-value 1)
                      (return-from loop)))))
@@ -105,8 +154,8 @@
   (cond ((< (strength self)
             (strength other))
          t)
-        ((< (strength other)
-            (strength self))
+        ((> (strength self)
+            (strength other))
          nil)
         (t (< (compare-cards self other) 0))))
 
@@ -116,10 +165,37 @@
                           (let ((chunks (cl-ppcre:split "\\s+" line)))
                             (make-hand (first chunks)
                                        (second chunks))))
-                        lines)))
-    (mapcar #'print-hand hands)))
+                        lines))
+         (sorted-hands (sort hands #'is-less))
+         (values (loop for i from 1
+                       for h in sorted-hands
+                       collecting (* (bid h) i))))
+    (reduce #'+ values)))
+
+(defun part2 (file-name)
+  (setf (gethash "J" *face-cards*) 1)
+  
+  (let* ((lines (uiop:read-file-lines file-name))
+         (hands (mapcar (lambda (line)
+                          (let ((chunks (cl-ppcre:split "\\s+" line)))
+                            (make-hand (first chunks)
+                                       (second chunks)
+                                       :has-wild-cards t)))
+                        lines))
+         (sorted-hands (sort hands #'is-less))
+         (values (loop for i from 1
+                       for h in  sorted-hands
+                       collecting (* (bid h) i))))
+    (reduce #'+ values)))
+
+(print (part1 "input0.txt"))
+(print (part1 "input1.txt"))
+
+(print (part2 "input0.txt"))
+(print (part2 "input1.txt"))
 
 
-(part1 "input0.txt")
+
+
 
 
