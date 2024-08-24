@@ -1,7 +1,7 @@
 ;; day 08
 
 (declaim (optimize (speed 0) (space 0) (debug 3)))
-
+(setf *print-circle* t)
 (ql:quickload :cl-itertools)
 
 (require :cl-ppcre)
@@ -37,11 +37,13 @@
           (node-name (node-left node))
           (node-name (node-right node))))
 
-(defun find-node (node directions)
+(defun find-node (node directions &optional is-part-2)
   (let ((steps 0))
     (loop
       (let* ((dir (inext directions)))
-        (if (equal (node-name node) "ZZZ")
+        (if (or (equal (node-name node) "ZZZ")
+                (and is-part-2
+                     (equal (uiop:last-char (node-name node)) #\Z)))
             (return-from find-node steps))
         (incf steps)
         (if (equal dir "L")
@@ -54,7 +56,20 @@
       (find-node (gethash "AAA" nodes)
                  (icycle dirs)))))
 
-(part1 "input1.txt")
+(defun part2 (file-name)
+  (let ((lines (uiop:read-file-lines file-name)))
+    (multiple-value-bind (nodes dirs) (build-nodes lines)
+      (let* ((ending-in-a (remove-if-not (lambda (node)
+                                           (equal (uiop:last-char (node-name node)) #\A))
+                                         (loop for v being the hash-values of nodes collecting v)))
+             (finishes (mapcar (lambda (node)
+                                 (find-node node (icycle dirs) t))
+                               ending-in-a)))
+        (apply #'lcm finishes)))))
+
+(print (part1 "input1.txt"))
+(print (part2 "input1.txt"))
+
 
 
 
