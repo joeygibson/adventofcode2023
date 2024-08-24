@@ -18,32 +18,36 @@
             pairs)))
 
 (defun solve (lines)
-  (let ((results nil))
+  (let ((results '()))
     (mapc (lambda (line)
             (print "-----")
-            (let ((sequences (make-array 5 :fill-pointer 0))
+            (let ((rev-sequences nil)
+                  (sequences nil)
                   (values (loop for val in (all-matches-as-strings "\\d+" line)
                                 collecting (parse-integer val))))
-              (vector-push values sequences)
+              (push values rev-sequences)
               (loop named diffs
                     do (let ((differences (compute-differences values)))
-                         (vector-push differences sequences)
+                         (push differences rev-sequences)
                          (if (every (lambda (v) (= v 0))
                                     differences)
                              (return-from diffs))
                          (setf values differences)))
-              (let ((rev-sequences (reverse sequences)))
-                (format t "~&rs: ~a~%" rev-sequences)
-                (loop for i from 0
-                      for sequence across rev-sequences
-                      do (progn
-                           (format t "~&~a ~a~%" i sequence)
-                           (if (not (= i 0))
-                               (nconc sequence (list (+ (car (last sequence))
-                                                        (car (last (aref rev-sequences (1- i)))))))
-                               (nconc sequence (list (car (last sequence)))))))
-                (nconc results (let ((s (aref sequences 0)))
-                                 (car (last s)))))))
+              (setf sequences (reverse rev-sequences))
+              (format t "~&SEQ: ~a~%" sequences)
+              (format t "~&rs: ~a~%" rev-sequences)
+              (loop for i from 0
+                    for sequence in rev-sequences
+                    do (progn
+                         (format t "~&~a ~a~%" i sequence)
+                         (if (not (= i 0))
+                             (nconc sequence (list (+ (car (last sequence))
+                                                      (car (last (nth (1- i) rev-sequences))))))
+                             (nconc sequence (list (car (last sequence)))))
+                         (format t "~&aseq: ~a~%" sequence)))
+              (print sequences)
+              (push (car (last (first sequences))) results))
+            (format t "~&res: ~a~%" results))
           lines)
     (reduce #'+ results)))
 
@@ -52,23 +56,8 @@
     (solve lines)))
 
 (print (part1 "input0.txt"))
+(print (part1 "input1.txt"))
 
-(let ((v (make-array 5 :fill-pointer 0)))
-  (vector-push "a" v)
-  (vector-push "b" v)
-  (vector-push "c" v)
-  (print (aref v (1- (length v)))))
 
-(loop named foo
-      for i below 10
-      do (if (= i 5)
-             (return-from foo 23)
-             (print i)))
 
-(let ((l (list 1 2 3)))
-  (nconc l (list 23))
-  (print l))
-
-(let ((l (list 1 2 3)))
-  (nth 1 l))
 
