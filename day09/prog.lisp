@@ -17,13 +17,16 @@
                 (- b a)))
             pairs)))
 
-(defun solve (lines)
+(defun solve (lines &key in-reverse)
   (let ((results '()))
     (mapc (lambda (line)
             (let ((rev-sequences nil)
                   (sequences nil)
                   (values (loop for val in (all-matches-as-strings "\\-?\\d+" line)
                                 collecting (parse-integer val))))
+              (if in-reverse
+                  (setf values (reverse values)))
+              
               (push values rev-sequences)
               (loop named diffs
                     do (let ((differences (compute-differences values)))
@@ -48,8 +51,15 @@
   (let ((lines (uiop:read-file-lines file-name)))
     (solve lines)))
 
+(defun part2 (file-name)
+  (let ((lines (uiop:read-file-lines file-name)))
+    (solve lines :in-reverse t)))
+
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
+
+(print (part2 "input0.txt"))
+(print (part2 "input1.txt"))
 
 
 
