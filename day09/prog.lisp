@@ -20,10 +20,9 @@
 (defun solve (lines)
   (let ((results '()))
     (mapc (lambda (line)
-            (print "-----")
             (let ((rev-sequences nil)
                   (sequences nil)
-                  (values (loop for val in (all-matches-as-strings "\\d+" line)
+                  (values (loop for val in (all-matches-as-strings "\\-?\\d+" line)
                                 collecting (parse-integer val))))
               (push values rev-sequences)
               (loop named diffs
@@ -34,20 +33,14 @@
                              (return-from diffs))
                          (setf values differences)))
               (setf sequences (reverse rev-sequences))
-              (format t "~&SEQ: ~a~%" sequences)
-              (format t "~&rs: ~a~%" rev-sequences)
               (loop for i from 0
                     for sequence in rev-sequences
                     do (progn
-                         (format t "~&~a ~a~%" i sequence)
                          (if (not (= i 0))
                              (nconc sequence (list (+ (car (last sequence))
                                                       (car (last (nth (1- i) rev-sequences))))))
-                             (nconc sequence (list (car (last sequence)))))
-                         (format t "~&aseq: ~a~%" sequence)))
-              (print sequences)
-              (push (car (last (first sequences))) results))
-            (format t "~&res: ~a~%" results))
+                             (nconc sequence (list (car (last sequence)))))))
+              (push (car (last (first sequences))) results)))
           lines)
     (reduce #'+ results)))
 
