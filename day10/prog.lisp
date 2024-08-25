@@ -65,21 +65,41 @@
                      (member coord keys :test #'equal))
                    n-coords)))
 
-(defun find-ends (map)
-  (let ((start (loop for k being the hash-keys of map
-                     if (equal (gethash k map) +start+)
-                       return k)))
-    (get-neighbors map start)))
+(defun find-start (map)
+  (loop for k being the hash-keys of map
+        if (equal (gethash k map) +start+)
+          return k))
 
-
+(defun walk-pipes (map cell start)
+  (let* ((steps 1)
+         (prev-cells (list start)))
+    (loop named walk
+          do (let* ((this-cells-neighbors (get-neighbors map cell))
+                    (next-cell nil))
+               (if (and (member start this-cells-neighbors :test #'equal)
+                        (> steps 1))
+                   (progn
+                     (incf steps)
+                     (return-from walk)))
+               (setf next-cell (first (remove-if (lambda (n)
+                                                   (equal n (car (last prev-cells))))
+                                                 this-cells-neighbors)))
+               (nconc prev-cells (list cell))
+               (setf cell next-cell)
+               (incf steps)))
+    (floor steps 2)))
 
 (defun part1 (file-name)
   (let* ((lines (uiop:read-file-lines file-name))
          (map (build-map lines))
-         (ends (find-ends map)))
-    (print ends)))
+         (start (find-start map))
+         (ends (get-neighbors map start)))
+    (print (mapcar (lambda (end)
+                     (walk-pipes map end start))
+                   ends))))
 
 (print (part1 "input0.txt"))
+(print (part1 "input1.txt"))
 
 
 
