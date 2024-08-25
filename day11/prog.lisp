@@ -37,8 +37,10 @@
                      do (setf (gethash (cons i j) galaxies) (cons i j))))
     galaxies))
 
-(defun expand-universe (galaxies ex-rows ex-cols)
-  (let ((scale 1))
+(defun expand-universe (galaxies ex-rows ex-cols &key is-part-two)
+  (let ((scale (if is-part-two
+                   999999
+                   1)))
     (loop for i in ex-rows
           do (maphash (lambda (k v)
                         (when (> (car k) i)
@@ -72,12 +74,12 @@
                  (abs (- a1 b1)))))
           pairs))
 
-(defun do-it (lines)
+(defun do-it (lines &key is-part-two)
   (let* ((universe (build-universe lines))
          (ex-rows (find-expandable-rows universe))
          (ex-cols (find-expandable-cols universe))
          (original-galaxies (find-galaxies-as-dict universe))
-         (galaxies (expand-universe original-galaxies ex-rows ex-cols))
+         (galaxies (expand-universe original-galaxies ex-rows ex-cols :is-part-two is-part-two))
          (pairs (combinations (loop for v being the hash-values of galaxies collecting v) 2))
          (distances (compute-distances pairs)))
     (reduce #'+ distances)))
@@ -86,13 +88,12 @@
   (let ((lines (uiop:read-file-lines file-name)))
     (do-it lines)))
 
+(defun part2 (file-name)
+  (let ((lines (uiop:read-file-lines file-name)))
+    (do-it lines :is-part-two t)))
+
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
 
-(setf u (build-universe (uiop:read-file-lines "input0.txt")))
-(find-galaxies-as-dict u)
-
-(let ((p (list (cons 0 4) (cons 1 9))))
-  (print (car p))
-  (print (cadr p)))
-
+(print (part2 "input0.txt"))
+(print (part2 "input1.txt"))
