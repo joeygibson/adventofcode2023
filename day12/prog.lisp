@@ -1,6 +1,6 @@
 ;; day 12
 
-(declaim (optimize (speed 0) (space 0) (debug 3)))
+;; (declaim (optimize (speed 0) (space 0) (debug 3)))
 
 (ql:quickload :cl-ppcre)
 (ql:quickload :lisp-utils)
@@ -62,6 +62,28 @@
                           data)))
     (reduce #'+ results)))
 
+(defun part2 (file-name)
+  (let* ((lines (uiop:read-file-lines file-name))
+         (data (parse lines))
+         (results (mapcar (lambda (row)
+                            (destructuring-bind (record groups) row
+                              (let ((unfolded-record (loop for i below 5
+                                                           append record
+                                                           unless (= i 4)
+                                                             append (list "?")))
+                                    (unfolded-groups (loop for i below 5
+                                                           append groups)))
+                                (calc unfolded-record unfolded-groups))))
+                          data)))
+    (reduce #'+ results)))
+
+
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
+
+(print (part2 "input0.txt"))
+(print (part2 "input1.txt"))
+
+
+
 
