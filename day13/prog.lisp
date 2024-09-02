@@ -37,23 +37,15 @@
 
 (defun part1 (file-name)
   (let* ((sections (split-file-into-sections file-name))
-         (x-matches (mapcar (lambda (section)
-                              (mirror-match section))
-                            sections))
-         (y-matches (mapcar (lambda (section)
-                              (mirror-match (rotate-strings-90 section)))
-                            sections)))
-    (print x-matches)
-    (print y-matches)))
+         (x-matches (reduce #'+ (mapcar (lambda (section)
+                                          (mirror-match section))
+                                        sections)))
+         (y-matches (reduce #'+ (mapcar (lambda (section)
+                                          (mirror-match (rotate-strings-90 section)))
+                                        sections))))
+    (+ (* x-matches 100) y-matches)))
 
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
 
-
-(let ((section (first (lisp-utils:split-file-into-sections "input0.txt"))))
-  (print "*****")
-  (loop for i in section do (print i))
-  (print "-----")
-  (loop for i in (rotate-strings-90 section) do (print i)))
-(setq *m* '("foo" "bar" "baz"))
 
