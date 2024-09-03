@@ -28,11 +28,11 @@
          (fst (take first-half max-rows))
          (snd (take second-half max-rows)))
     (if (equal fst snd)
-        (1+ max-rows)
+        divider
         0)))
 
 (defun mirror-match (section)
-  (reduce #'+ (loop for i from 1 upto (1- (length section))        
+  (reduce #'+ (loop for i from 1 below (length section)
                     collecting (mirror section i))))
 
 (defun part1 (file-name)
@@ -47,5 +47,6 @@
 
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
+
 
 
