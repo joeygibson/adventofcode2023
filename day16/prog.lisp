@@ -35,9 +35,9 @@
     cave))
 
 
-(defun solve (lines)
+(defun solve (lines direction)
   (let* ((cave (build-map lines))
-         (beam (make-beam :pos (cons 0 0) :dir "r"))
+         (beam (make-beam :pos (cons 0 0) :dir direction))
          (beams (list beam))
          (split-spots nil))
     (loop until (not beams)
@@ -95,11 +95,49 @@
 
 (defun part1 (file-name)
   (let ((lines (uiop:read-file-lines file-name)))
-    (solve lines)))
+    (solve lines "r")))
+
+(defun part2 (file-name)
+  (let ((lines (uiop:read-file-lines file-name))
+        (results nil))
+    (loop for y from 0
+          for line in lines
+          for lines-length = (length lines)
+          do (loop for x upto (length line)
+                   for start-pos = (cons x y)
+                   for line-length = (length line)
+                   do (cond ((and (= x 0) (= y 0))
+                             (setf results (append results
+                                                   (list (solve lines start-pos "r")
+                                                         (solve lines start-pos "d")))))
+                            ((and (= x 0) (= y (1- lines-length)))
+                             (setf results (append results
+                                                   (list (solve lines start-pos "r")
+                                                         (solve lines start-pos "u")))))
+                            ((and (= x (1- line-length)) (= y 0))
+                             (setf results (append results
+                                                   (list (solve lines start-pos "l")
+                                                         (solve lines start-pos "d")))))
+                            ((and (= x (1- line-length)) (= y (1- lines-length)))
+                             (setf results (append results
+                                                   (list (solve lines start-pos "l")
+                                                         (solve lines start-pos "u")))))
+                            ((= x 0)
+                             (setf results (append results (list (solve lines start-pos "r")))))
+                            ((= x (1- line-length))
+                             (setf results (append results (list (solve lines start-pos "l")))))
+                            ((= y 0)
+                             (setf results (append results (list (solve lines start-pos "d")))))
+                            ((= y (1- lines-length))
+                             (setf results (append results (list (solve lines start-pos "u"))))))))
+    (apply #'max results)))
+
 
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
 
+(print (part2 "input0.txt"))
+(print (part2 "input1.txt"))
 
 
 
