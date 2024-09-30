@@ -39,19 +39,21 @@
     (nreverse trench)))
 
 (defun shoelace-area (trench)
-  (let* ((s1 0)
+  (let* ((t-arr (coerce trench 'vector))
+         (t-length (length t-arr))
+         (s1 0)
          (s2 0))
     (loop for i from 0
-          for pos in trench
+          for pos across t-arr
           do (let* ((x1 (car pos))
                     (y1 (cdr pos))
                     (x2 0)
                     (y2 0))
-               (if (= (1+ i) (length trench))
-                   (progn (setf x2 (car (car trench)))
-                          (setf y2 (cdr (car trench))))
-                   (progn (setf x2 (car (nth (1+ i) trench)))
-                          (setf y2 (cdr (nth (1+ i) trench)))))
+               (if (= (1+ i) t-length)
+                   (progn (setf x2 (car (aref t-arr 0)))
+                          (setf y2 (cdr (aref t-arr 0))))
+                   (progn (setf x2 (car (aref t-arr (1+ i))))
+                          (setf y2 (cdr (aref t-arr (1+ i))))))
                (incf s1 (* x1 y2))
                (incf s2 (* x2 y1))))
     (abs (/ (- s1 s2) 2))))
@@ -77,18 +79,14 @@
   (let* ((plan (parse file-name))
          (converted-plan (mapcar #'convert plan))
          (trench (dig converted-plan))
-         ;(area (shoelace-area trench))
-         )
-    (print (length trench))
-    ;(print (1+ (+ (/ (length trench) 2) area)))
-    ))
+         (area (shoelace-area trench)))
+    (print (1+ (+ (/ (length trench) 2) area)))))
 
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
 
 (print (part2 "input0.txt"))
+(print (part2 "input1.txt"))
 
-(subseq "(#70c710)" 2 7)
-(subseq "(#70c710)" 7 8)
 
 
