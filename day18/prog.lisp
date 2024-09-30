@@ -35,8 +35,8 @@
                    (when (equal pos (cons 0 0))
                      (return))
                    
-                   (setf trench (append trench (list pos)))))))
-    trench))
+                   (push pos trench)))))
+    (nreverse trench)))
 
 (defun shoelace-area (trench)
   (let* ((s1 0)
@@ -56,12 +56,39 @@
                (incf s2 (* x2 y1))))
     (abs (/ (- s1 s2) 2))))
 
+(defun convert (line)
+  (let* ((value (nth 2 line))
+         (hex-digit (subseq value 2 7))
+         (dir-digit (parse-integer (subseq value 7 8)))
+         (dir (case dir-digit
+                (0 "R")
+                (1 "D")
+                (2 "L")
+                (3 "U"))))
+    (list dir (parse-integer hex-digit :radix 16) "color")))
+
 (defun part1 (file-name)
   (let* ((plan (parse file-name))
          (trench (dig plan))
          (area (shoelace-area trench)))
     (print (1+ (+ (/ (length trench) 2) area)))))
 
+(defun part2 (file-name)
+  (let* ((plan (parse file-name))
+         (converted-plan (mapcar #'convert plan))
+         (trench (dig converted-plan))
+         ;(area (shoelace-area trench))
+         )
+    (print (length trench))
+    ;(print (1+ (+ (/ (length trench) 2) area)))
+    ))
+
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
+
+(print (part2 "input0.txt"))
+
+(subseq "(#70c710)" 2 7)
+(subseq "(#70c710)" 7 8)
+
 
