@@ -6,7 +6,7 @@
 (ql:quickload :alexandria)
 
 (use-package :lisp-utils)
-(use-package :cl-ppcre)
+;;(use-package :cl-ppcre)
 
 (defun parse-parts (lines)
   (let* ((sections (split-sequence-into-sections lines)))
@@ -126,7 +126,83 @@
                             sum))
                         accepted))))
 
+(defclass span ()
+  ((start :initarg :start :accessor start)
+   (end :initarg :end :accessor end)))
+
+(defmethod print-object ((obj span) stream)
+  (print-unreadable-object (obj stream :type t)
+    (with-accessors ((start start)
+                     (end end))
+        obj
+      (format stream "start: ~a, end: ~a" start end))))
+
+(defmethod len ((obj span))
+  (with-slots (start end) obj
+    (1+ (- end start))))
+
+(defmethod split ((obj span) n)
+  (with-slots (start end) obj
+    (if (or (< n start)
+            (>= n end))
+        (error "n is not in range"))
+    (values (make-span start (1- n))
+            (make-span n end))))
+
+(defun make-span (start end)
+  (make-instance 'span :start start :end end))
+
+(defun combos (workflows dest spans)
+  (print dest)
+  (cond ((equal dest "A")
+         (reduce #'* (mapcar (lambda (spn)
+                               (len spn))
+                             spans)))
+        ((equal dest "R") 0)
+        (t (let* ((flow (gethash dest workflows))
+                  (span-index (alexandria:plist-hash-table '("x" 0 "m" 1 "a" 2 "s" 3) :test #'equal)))
+             (dolist (step (take flow (1- (length flow))))
+               (let* ((the-index (gethash (var-name step) span-index))
+                      (span (nth the-index spans))
+                      (the-op (op step))
+                      (the-value (value step)))
+                 (format t "~&~a, ~a, ~a, ~a~%"the-index span the-op the-value)
+                 (break)
+                 (cond ((or (and (equal the-op "<")
+                                 (< (end span) the-value))
+                            (and (equal the-op ">")
+                                 (> (start span) the-value)))
+                        (combos workflows (dest step) spans))
+                       (t
+                        (multiple-value-bind (fst snd) (split span (if (equal the-op "<")
+                                                                       the-value
+                                                                       (1+ the-value)))
+                          (let ((lower-spans (copy-seq spans))
+                                (upper-spans (copy-seq spans)))
+                            (setf (nth the-index lower-spans) fst)
+                            (setf (nth the-index upper-spans) snd)
+                            (if (equal the-op "<")
+                                (+ (combos workflows (dest step) lower-spans)
+                                   (combos workflows dest upper-spans))
+                                (+ (combos workflows dest lower-spans)
+                                   (combos workflows (dest step) upper-spans)))))))))
+             (combos workflows (dest (car (last flow))) spans)))))
+
+(defun part2 (file-name)
+  (let* ((lines (uiop:read-file-lines file-name))
+         (workflows (parse-rules lines)))
+    (combos workflows "in" (list (make-span 1 4000)
+                                 (make-span 1 4000)
+                                 (make-span 1 4000)
+                                 (make-span 1 4000)))))
+
+(print (part2 "input0.txt"))
+
+
+
 (print (part1 "input0.txt"))
 (print (part1 "input1.txt"))
+
+
 
 
