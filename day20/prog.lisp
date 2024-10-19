@@ -146,7 +146,7 @@
                           (incf (gethash output-pulse pulse-counts 0)))
                         (if (and hits
                                  (all-high comp)
-                                 (not (member (name comp) hits :test #'equal)))
+                                 (not (gethash (name comp) hits)))
                             (setf (gethash (name comp) hits) iteration)))))))
     pulse-counts))
 
@@ -163,7 +163,31 @@
     (* (gethash HIGH-PULSE totals)
        (gethash LOW-PULSE totals))))
 
+(defun part2 (file-name)
+  (let* ((lines (uiop:read-file-lines file-name))
+         (circuit (parse lines))
+         (hits (make-hash-table :test #'equal))
+         (conjunctions (remove-if-not (lambda (comp)
+                                        (equal (comp-type comp) CONJUNCTION))
+                                      (alexandria:hash-table-values circuit))))
+    (loop named main-loop
+          for press-count from 1
+          do (press-the-button circuit hits press-count)
+             (let* ((local-press-count (1+ press-count))
+                    (missing (remove-if-not (lambda (name)
+                                              (not (gethash name hits)))
+                                            (mapcar (lambda (comp)
+                                                      (name comp))
+                                                    conjunctions))))
+               (if (= (length missing) 1)
+                   (return-from main-loop))))
+    (apply #'lcm (alexandria:hash-table-values hits))))
+
 (print (part1 "input0.txt"))
+(print (part1 "input2.txt"))
+(print (part1 "input1.txt"))
+
+(print (part2 "input1.txt"))
 
 
 
