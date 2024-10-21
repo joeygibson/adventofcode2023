@@ -68,6 +68,15 @@
                                   (mod max-steps 2))))
                            visited))))
 
+(defun expand-matrix (matrix factor)
+  (let* ((rows (length matrix))
+         (cols (length (first matrix)))
+         (new-rows (* factor rows))
+         (new-cols (* factor cols)))
+    (loop for i from 0 below new-rows
+          collect (loop for j from 0 below new-cols
+                        collect (aref (nth (mod i rows) matrix) 
+                                      (mod j cols))))))
 
 (defun part1 (file-name how-far-away)
   (let* ((lines (uiop:read-file-lines file-name))
@@ -75,6 +84,18 @@
          (start (find-start the-map))
          (spots (bfs the-map start how-far-away)))
     (1+ spots)))
+
+(defun part2 (file-name how-far-away)
+  (let* ((lines (uiop:read-file-lines file-name))
+         (the-map (parse-data lines))
+         (start (cons (floor (length the-map) 2)
+                      (floor (length the-map) 2)))
+         (expanded-map (expand-matrix the-map 5)))
+    ))
+
+
+
+
 
 (print (part1 "input0.txt" 6))
 (print (part1 "input1.txt" 64))
