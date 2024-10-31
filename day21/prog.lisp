@@ -90,7 +90,11 @@
          (the-map (parse-data lines))
          (start (cons (floor (length the-map) 2)
                       (floor (length the-map) 2)))
-         (expanded-map (expand-matrix the-map 5)))
+         (expanded-map (expand-matrix the-map 5))
+         (ys (mapcar (lambda (max-steps)
+                       (bfs expanded-map start max-steps))
+                     '(65 196 327)))
+         (xs ))
     ))
 
 
